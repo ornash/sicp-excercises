@@ -1,0 +1,21 @@
+(defun count-change (amount)
+  (defun first-denomination (kinds-of-coins)
+    (cond ((= kinds-of-coins 1) 1)
+	  ((= kinds-of-coins 2) 5)
+	  ((= kinds-of-coins 3) 10)
+	  ((= kinds-of-coins 4) 25)
+	  ((= kinds-of-coins 5) 50)))
+  (defun cc (amount kinds-of-coins)
+    (cond
+      ;;reached bottom of recursion tree, thus this is one way to count.
+      ((= amount 0) 1) 
+      ;;amount is too low so this is not a way to count or  no more coins are left
+      ((or (< amount 0) (= kinds-of-coins 0)) 0)
+      (t (+
+	  ;;Don't use highest denomination try other coins; and dont include highest coin to avoid duplicate ways.
+	  (cc amount (- kinds-of-coins 1))
+	  ;;Use the highest denomination and countChange for leftover amount using all the coins.
+	  (cc (- amount (first-denomination kinds-of-coins))
+	      kinds-of-coins)))))
+  (cc amount 5))
+	  

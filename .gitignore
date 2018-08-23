@@ -5,3 +5,11 @@
 *.scm~
 *.scm#*
 .#*.scm
+
+*.lisp~
+*.lisp#*
+.#*.lisp
+
+*.java~
+*.java#*
+.#*.java

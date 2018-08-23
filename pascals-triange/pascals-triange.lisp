@@ -1,0 +1,6 @@
+(defun pascals-triangle-number (row col)
+  (defun minus1 (i)
+    (- i 1))
+  (cont ((or (= col 1) (= row col)) 1)
+	(t (+ (pascals-triangle-number (minus1 row) (minus1 col))
+	      (pascals-triangle-number (minus1 row) col)))))
