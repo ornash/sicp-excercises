@@ -4,7 +4,7 @@
 ;;Load this file immediately after starting sbcl.
 
 (define (scheme-file-path name)
-  (string-append "/Users/rghumare/home/personal/sicp/" name "/" name ".scm"))
+  (string-append "~/home/personal/sicp/" name "/" name ".scm"))
 (define (load-scheme-file name)
   (load (scheme-file-path name)))
 ;;Alias for load-scheme-file
@@ -25,12 +25,3 @@
 (define (odd? x)
   (= (modulo x 2) 1))
 
-(define (fib-iter n)
-  (define (iter a b count)
-    (cond ((= n 0) 0)
-          ((= n 1) 1)
-          ((= count n) a)
-          (else (iter (+ a b) a (+ count 1)))))
-   (iter 1 0 1))
-
-(fib-iter 8)

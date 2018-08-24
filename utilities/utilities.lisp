@@ -3,7 +3,7 @@
 ;;Environemnt utils
 ;;Load this file immediately after starting sbcl.
 (defun lisp-file-path (name)
-  (concatenate 'string "/Users/rghumare/home/personal/sicp/" name "/" name ".lisp"))
+  (concatenate 'string "~/home/personal/sicp/" name "/" name ".lisp"))
 (defun load-lisp-file (name)
   (load (lisp-file-path name)))
 ;;Alias for load-lisp-file

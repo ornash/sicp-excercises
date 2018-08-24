@@ -7,6 +7,7 @@ fi
 
 DIR_NAME=${1}
 LISP_FILE_NAME=${1}.lisp
+SCHEME_FILE_NAME=${1}.scm
 JAVA_CLASS_NAME=${2}
 JAVA_FILE_NAME=${JAVA_CLASS_NAME}.java
 
@@ -20,6 +21,7 @@ mkdir ${DIR_NAME}
 #Setup files
 cd ${DIR_NAME}
 touch ${LISP_FILE_NAME}
+touch ${SCHEME_FILE_NAME}
 touch ${JAVA_FILE_NAME}
 
 #Setup java class
