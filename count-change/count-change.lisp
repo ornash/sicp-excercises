@@ -18,4 +18,13 @@
 	  (cc (- amount (first-denomination kinds-of-coins))
 	      kinds-of-coins)))))
   (cc amount 5))
+
+;;Test cases, all should evaluate to true
+(= 1 (count-change 1))
+(= 2 (count-change 5))
+(= 4 (count-change 10))
+(= 13 (count-change 25))
+(= 50 (count-change 50))
+(= 292 (count-change 100))
+
 	  
