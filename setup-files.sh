@@ -24,6 +24,10 @@ touch ${LISP_FILE_NAME}
 touch ${SCHEME_FILE_NAME}
 touch ${JAVA_FILE_NAME}
 
+#Setup scheme file
+echo ";;;;Requires utilities.scm" >> ${SCHEME_FILE_NAME}
+echo "(load \"../utilities/utilities.scm\")" >> ${SCHEME_FILE_NAME}
+
 #Setup java class
 echo "import java.lang.*;" >> ${JAVA_FILE_NAME}
 echo "" >> ${JAVA_FILE_NAME}
