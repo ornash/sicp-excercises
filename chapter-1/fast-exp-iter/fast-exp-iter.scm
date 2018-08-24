@@ -1,6 +1,6 @@
 ;;;;Requires utilities.scm
 ;;;;TODO: Load utilities.scm automatically
-(load "../utilities/utilities.scm")
+(load "../../utilities/utilities.scm")
 
 (define (slow-exp b n)
  (cond ((= n 1) b)

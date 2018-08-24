@@ -1,5 +1,5 @@
 ;;;;Requires utilities.scm
-(load "../utilities/utilities.scm")
+(load "../../utilities/utilities.scm")
 
 (define (sum-larger-pair-squares first second third)
   (define (smaller-of-pair a b)
