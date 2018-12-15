@@ -1,11 +1,12 @@
+;;Exercise 1.16, Page 46
+
 ;;;;Requires utilities.scm
 ;;;;TODO: Load utilities.scm automatically
 (load "../../utilities/utilities.scm")
 
 (define (slow-exp b n)
  (cond ((= n 1) b)
-       (else (* b (slow-exp b (- n 1))))
-       ))
+       (else (* b (slow-exp b (- n 1))))))
 
 (define (slow-exp-iter b n)
   (define (calc-exp n result)
@@ -65,3 +66,12 @@
 	  ))
   
   (calc-exp 0 n 1 1))
+
+;; Best/Easiest solution
+;; Copied from http://community.schemewiki.org/?sicp-ex-1.16
+(define (fast-expt b n) 
+   (define (iter a b n) 
+     (cond ((= n 0) a) 
+           ((even? n) (iter a (square b) (/ n 2))) 
+           (else (iter (* a b) b (- n 1))))) 
+   (iter 1 b n)) 
