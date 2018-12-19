@@ -24,4 +24,10 @@
   (= (modulo x 2) 0))
 (define (odd? x)
   (= (modulo x 2) 1))
+(define (double num)
+  (* num 2))
+(define (halve num)
+  (/ num 2))
+
+
 
