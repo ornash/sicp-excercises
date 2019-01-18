@@ -39,7 +39,32 @@
 (= 21 (fast-mult 3 7))
 (= 57 (fast-mult 3 19))
 
+(define (fast-mult-iter left right)
+  (define (do-mult-iter l r carry)
+    (cond
+     ((= r 1) (+ l carry))
+     ((odd? r)
+      (do-mult-iter l (- r 1) (+ l carry)))
+     (else (do-mult-iter (double l) (halve r) carry))))
+  (do-mult-iter left right 0))
 
+;; Test cases
+(= 24 (fast-mult-iter 6 4))
+(= 12 (fast-mult-iter 3 4))
+(= 12 (fast-mult-iter 4 3))
+(= 15 (fast-mult-iter 3 5))
+(= 21 (fast-mult-iter 3 7))
+(= 57 (fast-mult-iter 3 19))
 
+;; Test by comparison
+(define (validate-fast-mult start end)
+  (define (compare left right)
+    (display (cons left right))
+    (display "\n")
+    (= (* left right) (fast-mult left right) (fast-mult-iter left right)))
+  (cond ((> start end) #t)
+	((not (compare start end)) #f)
+	(else (validate-fast-mult (+ start 1) (- end 1)))))
 
+(equal? #t (validate-fast-mult 1 1000))
 
