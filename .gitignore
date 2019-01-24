@@ -1,3 +1,5 @@
+temp.scm
+
 *.ss~
 *.ss#*
 .#*.ss
