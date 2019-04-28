@@ -28,6 +28,6 @@
   (* num 2))
 (define (halve num)
   (/ num 2))
-
-
-
+(define (average n1 n2)
+  (/ (+ n1 n2)
+     2.0))
