@@ -96,13 +96,14 @@ else. Decomposition into units also helps transform one implementation into othe
 
 (define (find-divisor n test-divisor)
   (cond ((> (square test-divisor) n) n)
-	((divides? test-divisor n) test-divisor)
-	(else (find-divisor n (+ test-divisor 1)))))
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
 
 (define (divides? denom numer)
   (= (remainder numer denom) 0))
 #+END_SRC
-- 
+- Be careful of recursive procedures, subtle changes in code can result in huge difference in time
+  complexity. e.g. Check exercise [[./chapter-1/22-search-primes/22-search-primes.scm][1.25]] and [[./chapter-1/22-search-primes/22-search-primes.scm][1.26]].
 ** Formulating Abstractions with Higher Order Procedures
 Procedures that manipulate procedures are called higher-order procedures i.e. procedures that can accept procedures as
 arguments or return procedures as values. As shown below higher-order procedures permit us to manipulate general methods
