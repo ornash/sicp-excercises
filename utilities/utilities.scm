@@ -16,8 +16,11 @@
   (- x 1))
 (define (plus-1 x)
   (+ x 1))
+(define (inc x) (plus-1 x))
 
 ;;Math utils
+(define (identity x) x)
+
 (define (square x)
   (* x x))
 (define (even? x)

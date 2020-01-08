@@ -204,6 +204,10 @@ privileges” of first-class elements are:
 challenges for efficient implementation, but the resulting gain in expressive power is enormous. Chapter 4 highlights
 these challenges and provides solutions to deal with them.
 
+*** Notes
+- When you create abstractions keep in mind that the deeper they are the more difficult they are for the reader to
+  understand. Keep them shallow if possible.
+- 
 ** Miscellaneous
 *** Writing Recursive Programs
 - Think in terms of smallest/simplest units of computation that is already available or you can achieve, then assemble
