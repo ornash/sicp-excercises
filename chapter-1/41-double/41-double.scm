@@ -1,4 +1,4 @@
-;; Exercise 1.31
+;; Exercise 1.41
 
 ;; Read http://community.schemewiki.org/?sicp-ex-1.41 to understand this better.
 
@@ -24,9 +24,13 @@
 ((double-apply (double-apply inc)) 0)
 
 (((double-apply (double-apply double-apply)) inc) 0)
+;;16
 
 ((double-apply (double-apply (double-apply inc))) 0)
+;;8
 
+(((double-apply (double-apply double-apply)) inc) 5)
+;;21
 
 ;;This helps better in understanding whats going on.
 (define (triple-apply f)
@@ -47,6 +51,7 @@
 ;; (((triple-apply triple-apply) inc) 0) is equivalent to ((triple-apply (triple-apply (triple-apply inc))) 0)
 
 
-
-
+;; Best way to understand:
+;; 1. Think how evaluation model works.
+;; 2. Apply evaluation and create a call tree.
 

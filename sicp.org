@@ -191,6 +191,13 @@ We know that compound procedures are a crucial abstraction mechanism, because th
 of computing as explicit elements in our programming language e.g. (* x x x) can be represented with a general method
 called (cube x). Higher-order procedures permit us to manipulate these general methods to create further abstractions.
 
+As programmers, we should be alert to opportunities to identify the underlying abstractions in our programs and to build
+upon them and generalize them to create more powerful abstractions. This is not to say that one should always write
+programs in the most abstract way possible; expert programmers know how to choose the level of abstraction appropriate
+to their task. But it is important to be able to think in terms of these abstractions, so that we can be ready to apply
+them in new contexts. The significance of higher-order procedures is that they enable us to represent these abstractions
+explicitly as elements in our programming language, so that they can be handled just like other computational elements.
+
 In general, programming languages impose restrictions on the ways in which computational elements can be
 manipulated. Elements with the fewest restrictions are said to have first-class status. Some of the “rights and
 privileges” of first-class elements are:
@@ -207,7 +214,13 @@ these challenges and provides solutions to deal with them.
 *** Notes
 - When you create abstractions keep in mind that the deeper they are the more difficult they are for the reader to
   understand. Keep them shallow if possible.
-- 
+- The goal of writing abstractions is to try to arrive at a state where the abstraction can be used as: f(g(h(x),y))
+  i.e. a chain of function calls.
+- With practice, you should be able to traverse up and down the call tree to manipulate and define the right
+  abstraction.
+- As the number of higher order functions in the call tree increase, it becomes difficult to keep track of variables so
+  ensure that you always use good procedure names and unique variable names so that the code makes sense in
+  future. e.g. check [[./chapter-1/42-compose/42-compose.scm][1.46]].
 ** Miscellaneous
 *** Writing Recursive Programs
 - Think in terms of smallest/simplest units of computation that is already available or you can achieve, then assemble
