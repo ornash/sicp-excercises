@@ -41,3 +41,26 @@
     (y-point (end-segment segment)))
    ))
 
+;; Exercise 2.3
+
+(define (make-rectangle left-bottom right-top)
+  (cons left-bottom right-top))
+
+(define (left-bottom rectangle)
+  (car rectangle))
+
+(define (right-top rectangle)
+  (cdr rectangle))
+
+(define (length rectangle)
+  (abs (- (x-point (right-top rectangle)) (x-point (left-bottom rectangle)))))
+
+(define (breadth rectangle)
+  (abs (- (y-point (right-top rectangle)) (y-point (left-bottom rectangle)))))
+
+(define (perimeter rectangle)
+  (+ (* 2 (length rectangle)) (* 2 (breadth rectangle))))
+
+(define (area rectangle)
+  (* (length rectangle) (breadth rectangle)))
+
