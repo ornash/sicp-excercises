@@ -332,6 +332,71 @@ procedures. Both should be treated as mechanisms to achieve abstraction.
 - The data representation optimization decisions can be pushed to a later time if required.
 
 
+** Hierarchical Data and the Closure Property
+The ability to create pairs whose elements are pairs is the essence of list structure's importance as a representational
+tool.  We refer to this ability as the "closure property" of 'cons'.
+
+Closure is the key to power in any means of combination because it permits us to create "hierarchical"
+structures--structures made up of parts, which themselves are made up of parts, and so on.
+
+*** Representing Sequences
+Scheme has list operation to represent sequences.
+
+(list <A_1> <A_2> ... <A_N>)
+
+is equivalent to
+
+(cons <A_1> (cons <A_2> (cons ... (cons <A_N> nil) ...)))
+
+**** List Operations
+"cdr down and cons up"
+#+BEGIN_SRC scheme
+(define (length items)
+    (if (null? items)
+    0
+    (+ 1 (length (cdr items)))))
+
+(define (append list1 list2)
+    (if (null? list1)
+    list2
+    (cons (car list1) (append (cdr list1) list2))))
+#+END_SRC
+
+**** Mapping Over Lists
+#+BEGIN_SRC scheme
+(define (scale-list items factor)
+    (if (null? items)
+        nil
+        (cons (* (car items) factor)
+              (scale-list (cdr items) factor))))
+#+END_SRC
+
+We can keep doing "cdr down and cons up" but we can abstract this general idea and capture it as a common pattern
+expressed as a higher-order procedure called "map".
+
+#+BEGIN_SRC scheme
+(define (map proc items)
+    (if (null? items)
+        nil
+        (cons (proc (car items))
+              (map proc (cdr items)))))
+
+(define (scale-list items factor)
+    (map (lambda (x) (* x factor))
+         items))
+#+END_SRC
+
+'Map' is an important construct, not only because it captures a common pattern, but because it establishes a higher
+level of  abstraction in dealing with lists.  In the original definition of 'scale-list', the recursive structure of the
+program draws attention to the element-by-element processing of the list.  Defining 'scale-list' in terms of 'map'
+suppresses that level of detail and emphasizes that scaling transforms a list of elements to a list of results.  The
+difference between the two definitions is not that the computer is performing a different process (it isn't) but that we
+think about the process differently.  In effect, 'map' helps establish an abstraction barrier.
+
+*** Hierarchical Structures
+*** Sequences as Conventional Interfaces
+*** Example: A Picture Language
+
 * Miscellaneous
 
 * References
