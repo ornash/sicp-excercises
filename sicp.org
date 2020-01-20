@@ -130,6 +130,11 @@ to create further abstractions.
   (sum identity a inc b))
 #+END_SRC
 
+Note: This simple feature of allowing procedures as arguments is extremely powerful and helps us to identify and share
+common underlying patterns in various programs thereby reducing overall code and effort. It allows to create higher
+levels of abstraction helping us think better and faster. This is either not possible or very cumbersome in other
+languages. 
+
 *** Constructing Procedures Using Lambda
 (lambda (<formal-parameters>) <body>)
 
@@ -224,6 +229,7 @@ these challenges and provides solutions to deal with them.
 - As the number of higher order functions in the call tree increase, it becomes difficult to keep track of variables so
   ensure that you always use good procedure names and unique variable names so that the code makes sense in
   future. e.g. check [[./chapter-1/42-compose/42-compose.scm][1.46]].
+
 ** Miscellaneous
 *** Writing Recursive Programs
 - Think in terms of smallest/simplest units of computation that is already available or you can achieve, then assemble
@@ -353,13 +359,14 @@ is equivalent to
 #+BEGIN_SRC scheme
 (define (length items)
     (if (null? items)
-    0
-    (+ 1 (length (cdr items)))))
+        0
+        (+ 1 (length (cdr items)))))
 
 (define (append list1 list2)
     (if (null? list1)
-    list2
-    (cons (car list1) (append (cdr list1) list2))))
+        list2
+        (cons (car list1)
+              (append (cdr list1) list2))))
 #+END_SRC
 
 **** Mapping Over Lists
@@ -393,9 +400,218 @@ suppresses that level of detail and emphasizes that scaling transforms a list of
 difference between the two definitions is not that the computer is performing a different process (it isn't) but that we
 think about the process differently.  In effect, 'map' helps establish an abstraction barrier.
 
+Note: Creating abstraction barriers is important to help programmers think better. The implementation of the abstraction
+itself can be optimized later if requried. We are writing programs for computers as well as other programmers.
+
 *** Hierarchical Structures
+The representation of sequences in terms of lists generalizes naturally to represent sequences whose elements may
+themselves be sequences. Another way to think of sequences whose elements are sequences is as "trees".
+
+Recursion is a natural tool for dealing with tree structures, since we can often reduce operations on trees to
+operations on their branches, which reduce in turn to operations on the branches of the branches, and so on, until we
+reach the leaves of the tree. 
+
+#+BEGIN_SRC scheme
+(define (count-leaves x)
+    (cond ((null? x) 0)
+          ((not (pair? x)) 1)
+          (else (+ (count-leaves (car x))
+                   (count-leaves (cdr x))))))
+#+END_SRC
+
+**** Mapping Over Trees
+The recursive plan for 'scale-tree' is similar to the one for 'count-leaves':
+#+BEGIN_SRC scheme
+(define (scale-tree tree factor)
+    (cond ((null? tree) nil)
+          ((not (pair? tree)) (* tree factor))
+          (else (cons (scale-tree (car tree) factor)
+                      (scale-tree (cdr tree) factor)))))
+#+END_SRC
+
+Just as 'map' is a powerful abstraction for dealing with sequences, 'map' together with recursion is a powerful
+abstraction for dealing with trees. Another way to implement 'scale-tree' is to regard the tree as a sequence of
+sub-trees and use 'map'.
+
+#+BEGIN_SRC scheme
+;;Adding implementation of map here for reference.
+(define (map proc items)
+    (if (null? items)
+        nil
+        (cons (proc (car items))
+              (map proc (cdr items)))))
+
+(define (scale-tree tree factor)
+   (map (lambda (sub-tree)
+            (if (not (pair? sub-tree))
+                (* sub-tree factor)
+                (scale-tree sub-tree factor)))
+        tree))
+#+END_SRC
+
+Note: Both approaches above perform "cdr down cons up" so their performance and tree traversal path are the same;
+however, they differ in the way programmer is thinking about the tree traversal problem, in the first approach we are
+thinking in terms of pairs and traversing the tree pairwise, in the second we are thinking in terms of subtrees. Note
+that in the second approach the lambda passed to map is itself calling "scale-tree" on subtree.
+
 *** Sequences as Conventional Interfaces
+Use of "conventional interfaces" is a powerful design principle for working with data structures.
+
+In section [[Formulating Abstractions with Higher Order Procedures][1.3]] we saw how program abstractions, implemented as higher-order procedures, can capture *common patterns in
+programs* that deal with numerical data. Our ability to formulate analogous operations for working with compound data
+depends crucially on the style in which we manipulate our data structures.
+
+#+BEGIN_SRC scheme
+(define (sum-odd-squares tree)
+    (cond ((null? tree) 0)
+          ((not (pair? tree))
+          (if (odd? tree) (square tree) 0))
+          (else (+ (sum-odd-squares (car tree))
+                   (sum-odd-squares (cdr tree))))))
+
+(define (even-fibs n)
+    (define (next k)
+        (if (> k n)
+            nil
+            (let ((f (fib k)))
+                (if (even? f)
+                (cons f (next (+ k 1)))
+                (next (+ k 1))))))
+    (next 0))
+#+END_SRC
+
+Despite the fact that these two procedures are structurally very different, a more abstract description of the two
+computations reveals a great deal of similarity.
+
+The first program:
+   - enumerates the leaves of a tree;
+   - filters them, selecting the odd ones;
+   - squares each of the selected ones; and
+   - accumulates the results using `+', starting with 0.
+
+The second program:
+   - enumerates the integers from 0 to n;
+   - computes the Fibonacci number for each integer;
+   - filters them, selecting the even ones; and
+   - accumulates the results using `cons',  starting with the empty list.
+
+A signal-processing engineer would find it natural to conceptualize these processes in terms of signals flowing through
+a cascade of stages. However, our two procedures decompose the computations in a different way, spreading the
+enumeration over the program and mingling it with the map, the filter, and the accumulation. If we could organize our
+programs to make the signal-flow structure manifest in the procedures we write, this would increase the conceptual
+clarity of the resulting code. The key to organizing programs so as to more clearly reflect the signal-flow structure is
+to concentrate on the "signals" that flow from one stage in the process to the next. If we represent these signals as
+lists, then we can use list operations to implement the processing at each of the stages. Therefore, we can rewrite
+sum-odd-squares and even-fibs as:
+
+#+BEGIN_SRC scheme
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (enumerate-tree tree)
+  (cond ((null? tree) nil)
+        ((not (pair? tree)) (list tree))
+        (else (append (enumerate-tree (car tree))
+                      (enumerate-tree (cdr tree))))))
+
+(define (enumerate-interval low high)
+  (if (> low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
+
+(define (sum-odd-squares tree)
+  (accumulate +
+              0
+              (map square
+                   (filter odd?
+                           (enumerate-tree tree)))))
+
+(define (even-fibs n)
+  (accumulate cons
+              nil
+              (filter even?
+                      (map fib
+                           (enumerate-interval 0 n)))))
+#+END_SRC
+
+The value of expressing programs as sequence operations is that this helps us make program designs that are modular,
+that is, designs that are constructed by combining relatively independent pieces. We can encourage modular design by
+providing a library of standard components together with a *conventional interface* for connecting the components in
+flexible ways. Modular construction is a powerful strategy for controlling complexity in engineering design.
+
+Sequences, implemented here as lists, serve as a *conventional interface* that permits us to combine processing modules.
+Additionally, we can experiment with alternative representations of sequences, while leaving the overall design of our
+programs intact.  We will exploit this capability in chapter 3, when we generalize the sequence-processing paradigm to
+admit infinite sequences.
+
+Note: Although the time and space complexity may increase from n to 4n or 5n, the resulting conceptual clarity and
+modularity helps the programmer understand and write better. 
+
+
+**** Nested Sequences
+We can extend the sequence paradigm to include many computations that are commonly expressed using nested
+loops. Consider this problem: Given a positive integer n, find all ordered pairs of distinct positive integers i and j,
+where 1 <= j< i<= n, such that i + j is prime.
+
+We can generate the sequence of pairs: For each integer i <= n, enumerate the integers j<i, and for each such i and j
+generate the pair (i,j).
+
+#+BEGIN_SRC scheme
+(accumulate 
+    append 
+    nil
+    (map (lambda (i)
+             (map (lambda (j) (list i j))
+                  (enumerate-interval 1 (- i 1))))
+         (enumerate-interval 1 n)))
+#+END_SRC
+
+The combination of mapping and accumulating with 'append' is so common in this sort of program that we will isolate it
+as a separate procedure:
+
+#+BEGIN_SRC scheme
+     (define (flatmap proc seq)
+       (accumulate append nil (map proc seq)))
+
+     ;;Above definition can be used to generate the same sequence of pairs for nested loop as follows:
+     (flatmap
+         (lambda (i)
+             (map (lambda (j) (list i j))
+                  (enumerate-interval 1 (- i 1))))
+         (enumerate-interval 1 n))
+#+END_SRC
+
+All of this can be put together to generate prime-sum-pairs as follows:
+
+#+BEGIN_SRC scheme
+(define (prime-sum? pair)
+    (prime? (+ (car pair) (cadr pair))))
+
+(define (make-pair-sum pair)
+    (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+       (filter prime-sum?
+               (flatmap
+                   (lambda (i)
+                       (map (lambda (j) (list i j))
+                            (enumerate-interval 1 (- i 1))))
+                   (enumerate-interval 1 n)))))
+#+END_SRC
+
 *** Example: A Picture Language
+
 
 * Miscellaneous
 
