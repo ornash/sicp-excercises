@@ -398,7 +398,7 @@ level of  abstraction in dealing with lists.  In the original definition of 'sca
 program draws attention to the element-by-element processing of the list.  Defining 'scale-list' in terms of 'map'
 suppresses that level of detail and emphasizes that scaling transforms a list of elements to a list of results.  The
 difference between the two definitions is not that the computer is performing a different process (it isn't) but that we
-think about the process differently.  In effect, 'map' helps establish an abstraction barrier.
+think about the process differently. In effect, 'map' helps establish an abstraction barrier.
 
 Note: Creating abstraction barriers is important to help programmers think better. The implementation of the abstraction
 itself can be optimized later if requried. We are writing programs for computers as well as other programmers.
@@ -609,6 +609,27 @@ All of this can be put together to generate prime-sum-pairs as follows:
                             (enumerate-interval 1 (- i 1))))
                    (enumerate-interval 1 n)))))
 #+END_SRC
+
+Nested mappings are also useful for sequences other than those that enumerate intervals.  Suppose we wish to generate
+all the permutations of a set S {1,2,3}. The idea is to recursively generate the sequence of permutations of S - x, and
+adjoin x to the front of each one. This can be written as:
+
+#+BEGIN_SRC scheme
+(define (remove item sequence)
+  (filter (lambda (x) (not (= x item)))
+          sequence))
+
+(define (permutations s)
+  (if (null? s)                    ; empty set?
+      (list nil)                   ; sequence containing empty set
+      (flatmap (lambda (x)
+                 (map (lambda (p) (cons x p))
+                      (permutations (remove x s))))
+               s)))
+#+END_SRC
+
+Notice how this strategy reduces the problem of generating permutations of S to the problem of generating the
+permutations of sets with fewer elements than S.
 
 *** Example: A Picture Language
 
