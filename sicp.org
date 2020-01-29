@@ -221,7 +221,9 @@ these challenges and provides solutions to deal with them.
   in terms of those general methods thereby enhancing the power of programming langauge to express complex ideas as well
   as the power of programmer to reason about those complex ideas.
 - When you create abstractions keep in mind that the deeper they are the more difficult they are for the reader to
-  understand. Keep them shallow if possible.
+  understand. Keep them shallow if possible. I can think of one solution to this problem, let programmers provide as
+  deep abstractions as they want while writing, write a tool that unravels the deep abstraction and shows a possible
+  expanded view of the same code while reading so that it is easy to understand for a new programmer.
 - The goal of writing abstractions is to try to arrive at a state where the abstraction can be used as: f(g(h(x),y))
   i.e. a chain of function calls.
 - With practice, you should be able to traverse up and down the call tree to manipulate and define the right
@@ -423,7 +425,9 @@ reach the leaves of the tree.
 The recursive plan for 'scale-tree' is similar to the one for 'count-leaves':
 #+BEGIN_SRC scheme
 (define (scale-tree tree factor)
-    (cond ((null? tree) nil)
+    ;;(display tree)
+    ;;(newline)
+    (cond ((null? tree) '())
           ((not (pair? tree)) (* tree factor))
           (else (cons (scale-tree (car tree) factor)
                       (scale-tree (cdr tree) factor)))))
@@ -436,13 +440,22 @@ sub-trees and use 'map'.
 #+BEGIN_SRC scheme
 ;;Adding implementation of map here for reference.
 (define (map proc items)
+    ;;(display "my-map")
+    ;;(display items)
+    ;;(newline)
     (if (null? items)
-        nil
+        '()
         (cons (proc (car items))
               (map proc (cdr items)))))
 
 (define (scale-tree tree factor)
+   ;;(display "scale-tree-map ")
+   ;;(display tree)
+   ;;(newline)
    (map (lambda (sub-tree)
+            ;;(display "lambda ")
+	    ;;(display sub-tree)
+	    ;;(newline)
             (if (not (pair? sub-tree))
                 (* sub-tree factor)
                 (scale-tree sub-tree factor)))
