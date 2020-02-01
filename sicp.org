@@ -223,7 +223,13 @@ these challenges and provides solutions to deal with them.
 - When you create abstractions keep in mind that the deeper they are the more difficult they are for the reader to
   understand. Keep them shallow if possible. I can think of one solution to this problem, let programmers provide as
   deep abstractions as they want while writing, write a tool that unravels the deep abstraction and shows a possible
-  expanded view of the same code while reading so that it is easy to understand for a new programmer.
+  expanded view of the same code while reading so that it is easy to understand for a new programmer. Basically the call
+  stack has to reside somewhere i.e. either in the brain of programmer or in front of the programmer on the screen, the
+  cognitive load on the programmers must be reduced so that they can think in higer levels of abstractions and dive into
+  abstractions when necessary.
+- If you do have to create deep abstractions ensure that they are named appropriately so that programmer doesnt have to
+  unravel them to understand the code, names should be self-explanatory throughout. The cognitive load should be
+  reduced.
 - The goal of writing abstractions is to try to arrive at a state where the abstraction can be used as: f(g(h(x),y))
   i.e. a chain of function calls.
 - With practice, you should be able to traverse up and down the call tree to manipulate and define the right

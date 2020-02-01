@@ -56,4 +56,21 @@
 
 ;;Exercise 2.28
 
+(define (fringe tree)
+  (cond ((null? tree) '())
+	((not (pair? tree)) (cons tree '()))
+	(else (append (fringe (car tree)) (fringe (cdr tree)))))
+  )
 
+(fringe x)
+
+;;Other possible solution from http://community.schemewiki.org/?sicp-ex-2.28
+(define (fringe tree)
+  (define nil '())
+
+  (define (build-fringe x result)
+    (cond ((null? x) result)
+	  ((not (pair? x)) (cons x result))
+	  (else (build-fringe (car x)
+			      (build-fringe (cdr x) result)))))
+  (build-fringe tree nil))
