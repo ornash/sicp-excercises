@@ -34,3 +34,10 @@
 (define (average n1 n2)
   (/ (+ n1 n2)
      2.0))
+
+;;Collection utils
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))

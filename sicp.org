@@ -226,17 +226,17 @@ these challenges and provides solutions to deal with them.
   expanded view of the same code while reading so that it is easy to understand for a new programmer. Basically the call
   stack has to reside somewhere i.e. either in the brain of programmer or in front of the programmer on the screen, the
   cognitive load on the programmers must be reduced so that they can think in higer levels of abstractions and dive into
-  abstractions when necessary.
+  abstractions when necessary. See [[./chapter-1/][chapter-1]], Exercise [[./chapter-2/29-binary-mobile/29-binary-mobile.scm][2.29]].
 - If you do have to create deep abstractions ensure that they are named appropriately so that programmer doesnt have to
   unravel them to understand the code, names should be self-explanatory throughout. The cognitive load should be
-  reduced.
+  reduced. See Exercise [[./chapter-2/29-binary-mobile/29-binary-mobile.scm][2.29]].
 - The goal of writing abstractions is to try to arrive at a state where the abstraction can be used as: f(g(h(x),y))
   i.e. a chain of function calls.
 - With practice, you should be able to traverse up and down the call tree to manipulate and define the right
   abstraction.
 - As the number of higher order functions in the call tree increase, it becomes difficult to keep track of variables so
   ensure that you always use good procedure names and unique variable names so that the code makes sense in
-  future. e.g. check [[./chapter-1/42-compose/42-compose.scm][1.46]].
+  future. See Exercise [[./chapter-1/42-compose/42-compose.scm][1.46]].
 
 ** Miscellaneous
 *** Writing Recursive Programs
@@ -473,6 +473,9 @@ however, they differ in the way programmer is thinking about the tree traversal 
 thinking in terms of pairs and traversing the tree pairwise, in the second we are thinking in terms of subtrees. Note
 that in the second approach the lambda passed to map is itself calling "scale-tree" on subtree.
 
+**** Notes
+- Recursion is really powerful tool for hierarchical structures. If you name your abstractions properly, all you have to
+  do is solve for the base cases and let closure take care of the rest. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.35]].
 *** Sequences as Conventional Interfaces
 Use of "conventional interfaces" is a powerful design principle for working with data structures.
 
@@ -576,7 +579,21 @@ admit infinite sequences.
 Note: Although the time and space complexity may increase from n to 4n or 5n, the resulting conceptual clarity and
 modularity helps the programmer understand and write better. 
 
-
+Notes:
+- If you think about it, all operations on a computer are ETL, right from assembly level to the topmost
+  abstractions. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.36]].
+- You can obtain efficient solutions to problems with or without abstractions. The difference is that when you solve a
+  problem without using any abstractions you start at the most basic level and the solution is as good as your
+  logic/imagination/creativity etc. However, when you solve the same problem using available abstractions there are few
+  advatages: 1. you think using only the abstractions until the topmost abstraction barrier and might solve the problem
+  faster with a easy to understand solution. 2. you benefit from improvements to implementation of abstractions without
+  paying in cost. 3. you don't reinvent the wheel, you focus on the problem at hand. 4. you don't solve the problems
+  that have already been solved.; and there are some disadvantages: 1. you have to know and learn about the available
+  abstractions. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.36]], [[./chapter-2/37-matrices/37-matrices.scm][2.37]].
+- Use post-order/recursion when you want to apply/perform operations on the current item after the result of application
+  of operation on the rest of the items/successors is ready. Use pre-order/iteration when you want to apply/perform
+  operations on the current item after result from application of operation on previous items/predecessors is
+  available. See Exercise [[./chapter-2/38-fold-right-left/38-fold-right-left.scm][2.38]].
 **** Nested Sequences
 We can extend the sequence paradigm to include many computations that are commonly expressed using nested
 loops. Consider this problem: Given a positive integer n, find all ordered pairs of distinct positive integers i and j,
