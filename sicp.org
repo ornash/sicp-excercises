@@ -578,8 +578,7 @@ admit infinite sequences.
 
 Note: Although the time and space complexity may increase from n to 4n or 5n, the resulting conceptual clarity and
 modularity helps the programmer understand and write better. 
-
-Notes:
+**** Notes
 - If you think about it, all operations on a computer are ETL, right from assembly level to the topmost
   abstractions. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.36]].
 - You can obtain efficient solutions to problems with or without abstractions. The difference is that when you solve a
@@ -594,7 +593,60 @@ Notes:
   of operation on the rest of the items/successors is ready. Use pre-order/iteration when you want to apply/perform
   operations on the current item after result from application of operation on previous items/predecessors is
   available. See Exercise [[./chapter-2/38-fold-right-left/38-fold-right-left.scm][2.38]].
+- Consider the following Spark Scala example. In addition to constructors, selectors and preconditions you should also
+  consider providing a procedure that transforms object to itself using the provided function. This helps in chaining
+  calls. The ease of readability increases significantly from first to last version.
+#+BEGIN_SRC scala
+//first attempt
+    val rowsWithDummyAudit = addAuditColumnsToRows(rows)
+    val unionRows = performUnion(rowsWithDummyAudit, audittedRows)
+    val rowsBeforeAsOfDate = removeFutureRows(unionRows, asOfDateTime)
+    val rankedRow = rankRows(rowsBeforeAsOfDate)
+    val topRankedRows = fetchTopRankedRows(rankedRow)
+    val rowsWithoutDeletedRows = removeDeletedRowsBeforeDateTime(topRankedRows, asOfDateTime)
+    val finalRows = removeColumns(rowsWithoutDeletedRows, Set(RANK_COL))
+    val orderedFinalRows = finalRows.orderBy(orderCriteria map col: _*)
+
+// to chain it.
+    val orderedFinalRows2 =
+      removeColumns(
+        removeDeletedRowsBeforeDateTime(
+          fetchTopRankedRows(
+            rankRows(
+              removeFutureRows(
+                performUnion(
+                  addAuditColumnsToRows(rows),
+                  audittedRows),
+                asOfDateTime))),
+          asOfDateTime),
+        Set(RANK_COL)).orderBy(orderCriteria map col: _*)
+
+// chaining using transform
+    val orderedFinalRows3 =
+      removeColumns(
+        removeDeletedRowsBeforeDateTime(
+          removeFutureRows(
+            performUnion(rows.transform(addAuditColumnsToRows), audittedRows),
+            asOfDateTime)
+            .transform(rankRows)
+            .transform(fetchTopRankedRows),
+          asOfDateTime),
+        Set(RANK_COL)).orderBy(orderCriteria map col: _*)
+
+//even better chaining using transform and lambdas
+    val orderedFinalRows4 =
+      rows.transform(addAuditColumnsToRows)
+        .transform(dataFrame => { performUnion(dataFrame, audittedRows) })
+        .transform(dataFrame => { removeFutureRows(dataFrame, asOfDateTime) })
+        .transform(rankRows)
+        .transform(fetchTopRankedRows)
+        .transform(dataFrame => { removeDeletedRowsBeforeDateTime(dataFrame, asOfDateTime) })
+        .transform(dataFrame => { removeColumns(dataFrame, Set(RANK_COL)) })
+        .orderBy(orderCriteria map col: _*)
+#+END_SRC
+
 **** Nested Sequences
+
 We can extend the sequence paradigm to include many computations that are commonly expressed using nested
 loops. Consider this problem: Given a positive integer n, find all ordered pairs of distinct positive integers i and j,
 where 1 <= j< i<= n, such that i + j is prime.
