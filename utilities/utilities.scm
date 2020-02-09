@@ -43,23 +43,6 @@
 	  (else (test (+ divisor 1)))))
   (test 2))
 
-;;Collection utils
-(define (accumulate op initial sequence)
-  (if (null? sequence)
-      initial
-      (op (car sequence)
-          (accumulate op initial (cdr sequence)))))
-
-(define (flatmap proc seq)
-  (accumulate append nil (map proc seq)))
-
-(define (filter predicate sequence)
-  (cond ((null? sequence) nil)
-	((predicate (car sequence))
-	 (cons (car sequence)
-	       (filter predicate (cdr sequence))))
-	(else (filter predicate (cdr sequence)))))
-
 ;;Enumeration utils
 (define (enumerate-interval low high)
   (if (> low high)
@@ -68,8 +51,7 @@
 
 ;;(enumerate-interval 2 7)
 
-To enumerate the leaves of a tree, we can use(1)
-
+;;To enumerate the leaves of a tree, we can use(1)
 (define (enumerate-tree tree)
   (cond ((null? tree) '())
 	((not (pair? tree)) (list tree))
@@ -77,4 +59,42 @@ To enumerate the leaves of a tree, we can use(1)
 		      (enumerate-tree (cdr tree))))))
 
 ;;(enumerate-tree (list 1 (list 2 (list 3 4)) 5))
+
+;;Collection utils
+;;apply the accumulation operation op on the sequence using initial as the base term for empty sequence.
+;;the operator is expected to be a binary operator. The first argument of operator will be an element and
+;;the second argument will be result of accumulation on rest of the elements after current element.
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+;;apply map on the seq using given proc and flatten the results to create a single list.
+;;the assumption is that proc is a unary operator that will return a list, otherwise flatmap will return error.
+;;if the proc returns a list of list only the first level list is flattened.
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+;;(map (lambda (x) (cons 100 x)) (enumerate-interval 1 10))
+;;(flatmap (lambda (x) (cons 100 x)) (enumerate-interval 1 10))
+;;error: Object passed as an argument to append, is not a list.
+
+;;(map (lambda (x) x) (enumerate-interval 1 10))
+;;(flatmap (lambda (x) x) (enumerate-interval 1 10))
+;;error: Object passed as an argument to append, is not a list.
+
+;;(map (lambda (x) (list 100 x)) (enumerate-interval 1 10))
+;;(flatmap (lambda (x) (list 100 x)) (enumerate-interval 1 10))
+
+;;(map (lambda (x) (list (list 100 1) x)) (enumerate-interval 1 10))
+;;(flatmap (lambda (x) (list (list 100 1) x)) (enumerate-interval 1 10))
+
+;;check predicate for each element in sequence and return a sequence with elements that satisfy the predicate.
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+	((predicate (car sequence))
+	 (cons (car sequence)
+	       (filter predicate (cdr sequence))))
+	(else (filter predicate (cdr sequence)))))
 

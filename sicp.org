@@ -593,6 +593,8 @@ modularity helps the programmer understand and write better.
   of operation on the rest of the items/successors is ready. Use pre-order/iteration when you want to apply/perform
   operations on the current item after result from application of operation on previous items/predecessors is
   available. See Exercise [[./chapter-2/38-fold-right-left/38-fold-right-left.scm][2.38]].
+- Don't try to remember how a procedure works instead try to remember the properties it provides, the argument it
+  accepts and its return type. Thus, clear documentation and naming are critical when defining abstractions.
 - Consider the following Spark Scala example. In addition to constructors, selectors and preconditions you should also
   consider providing a procedure that transforms object to itself using the provided function. This helps in chaining
   calls. The ease of readability increases significantly from first to last version.
