@@ -409,7 +409,7 @@ difference between the two definitions is not that the computer is performing a 
 think about the process differently. In effect, 'map' helps establish an abstraction barrier.
 
 Note: Creating abstraction barriers is important to help programmers think better. The implementation of the abstraction
-itself can be optimized later if requried. We are writing programs for computers as well as other programmers.
+itself can be optimized later if required. We are writing programs for computers as well as other programmers.
 
 *** Hierarchical Structures
 The representation of sequences in terms of lists generalizes naturally to represent sequences whose elements may
@@ -722,8 +722,39 @@ Notice how this strategy reduces the problem of generating permutations of S to 
 permutations of sets with fewer elements than S.
 
 *** Example: A Picture Language
+- This language is designed to make it easy to experiment with patterns which are composed of repeated elements/images
+  that are shifted and scaled.
+- The data objects being combined are represented as procedures.
+- The operations in this language satisfy the closure property and allow us to easily build arbitrarily complicated
+  patterns.
+- The elegance of this picture language is that there is only one kind of element, called a painter.
+- A painter draws an image that is shifted and scaled to fit within a designated parallelogram-shaped frame. *The painter
+  is actually a procedure that returns a procedure which accepts one parameter (the frame). The application of this
+  returned procedure draws the painter's image in the provided frame argument with appropriate shifting and scaling to
+  fit the frame.*
+- To combine images, we use various operations that construct new painters from given painters i.e. the procedures that
+  combine painters and produce compound painters accept one or more painters as arguments and return a new painter. We
+  are exploiting the fact that painters are closed under the language's means of combination.
+- Since the means of combination are ordinary Scheme procedures, we automatically have the capability to do anything
+  with painter operations that we can do with procedures i.e. we can create abstractions for a series of operations that
+  produce a pattern or we can define recursive operations that produce a pattern.
+- Higer-order operations: In addition to abstracting patterns of combining painters, we can work at a higer level,
+  abstracting patterns of combining painter operations i.e. procedures that take painter operations as arguments and
+  create new painter operations.
+- Note: You have to be clearly familiar with the problem domain in order to define the right implementation, abstractions,
+  combiners and higher-order procedures. But if you get this right, you can delay the definition of lower levels and
+  freely define procedures at higher levels.
+- Note: When a procedure returns another procedure it is in effect delaying the execution until the returned procedure
+  is applied or until other arguments for returned procedure are available. It is also creating a generic procedure for
+  which some arguments are available and other arguments will become available when that procedure is applied.
+- Because of the separation of the implementation of the painter from the frame it draws the image in, we can write
+  transformers and combiners that need not know how painter works/draws, all they have to know is how to transform or
+  combine the frames so that they can pass it to the painer. Similarly, higher-order procedures that operate on
+  transformers and combiners need not know details of transformers, combiners, frame or painter, all they need to know
+  is how to operate on transformers and combiners to produce the desired patterns.
 
-
+** Symbolic Data
+*** 
 * Miscellaneous
 
 * References

@@ -1,4 +1,4 @@
-;; Exercise 2.40
+;; Exercise 2.42
 
 ;;;;Requires utilities.scm
 (load "../../utilities/utilities.scm")
