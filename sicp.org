@@ -753,16 +753,22 @@ permutations of sets with fewer elements than S.
   transformers and combiners need not know details of transformers, combiners, frame or painter, all they need to know
   is how to operate on transformers and combiners to produce the desired patterns.
 
+
 ** Symbolic Data
 *** Quotation
 - Provides a way to use characters other than numbers. e.g. 'a evaluates to a and 'abc evaluates to abc.
 - (list 'a 'b 'c) is equal to '(a b c).
   - And this applies recursively too i.e. (list 'a (list 'b 'c) 'd) is equal to  '(a (b c) d). also equal to (list 'a '(b c) 'd).
   - What is "'(a '(b c) d)"?
+  - What is "'abc"?
+  - What is "''abc"?
+  - What is "'''abc"?
   - What is "'(a (list b c) d)"?
   - What is "'(a (list 1 2) d)"?
 *** 
+
 * Miscellaneous
+
 
 * References
 - https://mitpress.mit.edu/sites/default/files/sicp/index.html
@@ -771,6 +777,7 @@ permutations of sets with fewer elements than S.
 - https://xuanji.appspot.com/isicp/index.html
 - https://www.neilvandyke.org/sicp-texi/
 - https://github.com/webframp/sicp-info
+
 
 * SICP Info
 ** Install
