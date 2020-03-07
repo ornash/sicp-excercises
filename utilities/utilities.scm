@@ -11,6 +11,11 @@
 (define (my-load name)
   (load-scheme-file name))
 
+;;display followed by newline
+(define (my-display arg)
+  (display arg)
+  (newline))
+
 ;;Programming utils
 (define nil '())
 
