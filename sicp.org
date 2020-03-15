@@ -577,7 +577,8 @@ programs intact.  We will exploit this capability in chapter 3, when we generali
 admit infinite sequences.
 
 Note: Although the time and space complexity may increase from n to 4n or 5n, the resulting conceptual clarity and
-modularity helps the programmer understand and write better. 
+modularity helps the programmer understand and write better.
+
 **** Notes
 - If you think about it, all operations on a computer are ETL, right from assembly level to the topmost
   abstractions. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.36]].
@@ -765,7 +766,16 @@ permutations of sets with fewer elements than S.
   - What is "'''abc"?
   - What is "'(a (list b c) d)"?
   - What is "'(a (list 1 2) d)"?
-*** 
+**** Notes
+- Naming is an important technique to simplify thinking about abstractions. Once you name an abstraction correctly you
+  dont have to remember its implementation, you just remember the concept it represents and use it.
+- Another important technique is to use wishful thinking and write code using abstractions then come back and implement
+  the abstractions.
+
+
+** Multiple Representations for Abstract Data
+
+** Systems with Generic Operations
 
 * Miscellaneous
 
