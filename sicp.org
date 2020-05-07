@@ -767,15 +767,95 @@ permutations of sets with fewer elements than S.
   - What is "'(a (list b c) d)"?
   - What is "'(a (list 1 2) d)"?
 **** Notes
-- Naming is an important technique to simplify thinking about abstractions. Once you name an abstraction correctly you
+- *Naming* is an important technique to simplify thinking about abstractions. Once you name an abstraction correctly you
   dont have to remember its implementation, you just remember the concept it represents and use it.
-- Another important technique is to use wishful thinking and write code using abstractions then come back and implement
-  the abstractions.
+- Another important technique is to use *wishful thinking* and write code using abstractions then come back and
+  implement the abstractions.
 
 
 ** Multiple Representations for Abstract Data
+Data-abstraction barriers are powerful tools for controlling complexity. It allows dividing the task of designing a
+large program into smaller tasks that can be performed separately. But this kind of data abstraction is not yet powerful
+enough because:
+ 1. there might be more than one useful representation for a data object, and we might like to design systems that can
+   deal with multiple representations.
+ 2. programming systems are often designed by many people working over extended periods of time, subject to requirements
+   that change over time. In such an environment, it is simply not possible for everyone to agree in advance on choices
+   of data representation.
+ 3. large/complex programs are often created by combining pre-existing modules that were designed in isolation.
+
+Therefore, besides data-abstraction barriers that isolate representation from use, we need: 
+ 1. abstraction barriers that isolate *different design choices* from each other.
+ 2. permit different choices to *coexist* in a single program.
+ 3. we need *conventions* that permit programmers to incorporate modules into larger systems *additively*, that is,
+    without having to redesign or reimplement these modules.
+
+Following sections describe these mechanisms in detail.
+
+*** Representations for Complex Numbers
+We implemented two different representations of complex numbers, namely rectangular and polar. Both have the same
+functions i.e. the constructors make-from-real-imag and make-from-mag-ang and the selectors real-part, imag-part,
+magnitude, and angle. We can choose to use *one* of these representations to perform operations add-complex,
+sub-complex, mul-complex, and div-complex. Thus we have an abstraction barrier that separates representation and usage
+of complex numbers. However, we can only chose one representation at a time.
+
+*** Tagged Data
+*Principle of least commitment:* The abstraction barrier formed by the selectors and constructors permits us to defer 
+to the last possible moment the choice of a concrete representation for our data objects and thus retain maximum
+flexibility in our system design.
+
+Tagged data representation lets us take the principle of least commitment even further. Both rectangular and polar
+representations get a separate tag during construction allowing abstract selectors real-part, imag-part, magnitude, and
+angle pick the right implementation at runtime. Thus we can have both representations at the same time and pick one
+based on the tag.
+
+This strategy of checking the type of a datum and calling an appropriate procedure is called *dispatching on type*.
+
+*** Data-Directed Programming and Additivity
+Using tagged data has two significant weaknesses:
+
+1. generic interface procedures (real-part, imag-part, magnitude, and angle) must know about all the different
+   representations.
+2. even though the individual representations can be designed separately, we must guarantee that no two procedures in
+   the entire system have the same name.
+
+The tagged data technique for implementing generic interfaces is not additive. Each addition of a new representation
+requires a change in generic interface procedures and programmers have to ensure that their are no name conflicts in
+procedures.
+
+Above issues are addressed using data-directed programming. Observe that when dealing with different representations and
+their common operations(both constructors and selectors) we are actually dealing with a two dimensional table with
+different representations as columns and the operations as rows.
+
+Data-directed programming is the technique of designing programs to work with such a table directly. Individual
+representations can be implemented in isolation and then installed into the data-directed system by using put
+method. Generic interface procedures use get method to fetch the right concrete procedure for given representation type
+and operation name. Thus new representations can be added additively without having to change generic interface
+procedure implementation and without worrying about name conflicts. Note that both constructors and selectors can be
+added to the table.
+
+(put ⟨op⟩ ⟨type⟩ ⟨item⟩) installs the ⟨item⟩ in the table, indexed by the ⟨op⟩ and the ⟨type⟩.
+(get ⟨op⟩ ⟨type⟩) looks up the ⟨op⟩, ⟨type⟩ entry in the table and returns the item found there. If no item is found,
+get returns false.
+
+*** Message Passing
+Systems designed using data-directed programming can be said to have “intelligent operations” that dispatch on data
+types. Message passing is a system design technique that creates “intelligent data objects” that dispatch on operation
+names. This technique further blurs the distinction between data and code. Notice that We have implemented the notion of
+an /object/ with just using procedures.
+
+*** Notes
+- Most of the times we need simple abstraction barriers, the horizontal kind.
+- Vertical abstraction barriers are implemented by programmers using one of the above 3 techniques in most programming
+  languages. Compare and contrast these techniques e.g. Exercise [[./chapter-2/75-mag-ang/75-mag-ang.scm][2.76]].
+- Modern programming languages use all three of the techniques described above and provide flexibility to the
+  programmers to define horizontal and vertical barriers.
+- Notice that we have not discussed type safety or types of parameters to procedures yet, we have been relying on order
+  of parameters and procedure names. But these things will become important as programs grow in complexity.
+
 
 ** Systems with Generic Operations
+
 
 * Miscellaneous
 
