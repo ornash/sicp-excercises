@@ -811,6 +811,25 @@ based on the tag.
 
 This strategy of checking the type of a datum and calling an appropriate procedure is called *dispatching on type*.
 
+Attaching and detaching tags.
+
+#+BEGIN_SRC scheme
+(define (attach-tag type-tag contents)
+  (cons type-tag contents))
+
+(define (type-tag datum)
+  (if (pair? datum)
+      (car datum)
+      (error "Bad tagged datum: 
+              TYPE-TAG" datum)))
+
+(define (contents datum)
+  (if (pair? datum)
+      (cdr datum)
+      (error "Bad tagged datum: 
+              CONTENTS" datum)))
+#+END_SRC
+
 Rectangular representation using tagged data.
 
 #+BEGIN_SRC scheme
