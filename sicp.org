@@ -1018,6 +1018,12 @@ an /object/ with just using procedures.
 
 ** Systems with Generic Operations
 
+*** Notes
+- It is important to distinguish between the cases where you need generic operations or generic types while designing a
+  system and its behaviour. i.e. horizontal or vertical abstraction.
+- At the end of the day, all you need is good abstraction and good implementation/execution of that abstraction. Good
+  abstraction makes it easier for the users to understand and use your system. Good implementation/execution provides
+  the necessary reliability so that user can have confidence in your system.
 
 * Miscellaneous
 
