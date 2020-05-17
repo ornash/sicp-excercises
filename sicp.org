@@ -1018,12 +1018,215 @@ an /object/ with just using procedures.
 
 ** Systems with Generic Operations
 
+Last section described how to desgin systems that include multiple representations of data and how to define generic
+interface operations that operate any on those representations. This sections describes how to define operations that
+are generic over different kinds arguments.
+
+We want to define a uniform interface consisting of operations add, sub, mul, div that can be used by programs operating
+on numbers. The numbers however can be of any kind i.e. integer, rational, or complex. We want our system to support
+these operations accross or within these kinds of numbers.
+
+Generic interface.
+#+BEGIN_SRC scheme
+(define (add x y) (apply-generic 'add x y))
+(define (sub x y) (apply-generic 'sub x y))
+(define (mul x y) (apply-generic 'mul x y))
+(define (div x y) (apply-generic 'div x y))
+
+(define (make-scheme-number n)
+  ((get 'make 'scheme-number) n))
+
+(define (make-rational n d)
+  ((get 'make 'rational) n d))
+
+(define (make-complex-from-real-imag x y)
+  ((get 'make-from-real-imag 'complex) x y))
+(define (make-complex-from-mag-ang r a)
+  ((get 'make-from-mag-ang 'complex) r a))
+#+END_SRC
+
+Installation of packages.
+#+BEGIN_SRC scheme
+(define (install-scheme-number-package)
+  (define (tag x)
+    (attach-tag 'scheme-number x))
+  (put 'add '(scheme-number scheme-number)
+       (lambda (x y) (tag (+ x y))))
+  (put 'sub '(scheme-number scheme-number)
+       (lambda (x y) (tag (- x y))))
+  (put 'mul '(scheme-number scheme-number)
+       (lambda (x y) (tag (* x y))))
+  (put 'div '(scheme-number scheme-number)
+       (lambda (x y) (tag (/ x y))))
+  (put 'make 'scheme-number
+       (lambda (x) (tag x)))
+  'done)
+
+(define (install-rational-package)
+  ;; internal procedures
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+  (define (make-rat n d)
+    (let ((g (gcd n d)))
+      (cons (/ n g) (/ d g))))
+  (define (add-rat x y)
+    (make-rat (+ (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (sub-rat x y)
+    (make-rat (- (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (mul-rat x y)
+    (make-rat (* (numer x) (numer y))
+              (* (denom x) (denom y))))
+  (define (div-rat x y)
+    (make-rat (* (numer x) (denom y))
+              (* (denom x) (numer y))))
+  ;; interface to rest of the system
+  (define (tag x) (attach-tag 'rational x))
+  (put 'add '(rational rational)
+       (lambda (x y) (tag (add-rat x y))))
+  (put 'sub '(rational rational)
+       (lambda (x y) (tag (sub-rat x y))))
+  (put 'mul '(rational rational)
+       (lambda (x y) (tag (mul-rat x y))))
+  (put 'div '(rational rational)
+       (lambda (x y) (tag (div-rat x y))))
+  (put 'make 'rational
+       (lambda (n d) (tag (make-rat n d))))
+  'done)
+
+(define (install-complex-package)
+  ;; imported procedures from rectangular 
+  ;; and polar packages
+  (define (make-from-real-imag x y)
+    ((get 'make-from-real-imag 
+          'rectangular) 
+     x y))
+  (define (make-from-mag-ang r a)
+    ((get 'make-from-mag-ang 'polar) 
+     r a))
+  ;; internal procedures
+  (define (add-complex z1 z2)
+    (make-from-real-imag 
+     (+ (real-part z1) (real-part z2))
+     (+ (imag-part z1) (imag-part z2))))
+  (define (sub-complex z1 z2)
+    (make-from-real-imag 
+     (- (real-part z1) (real-part z2))
+     (- (imag-part z1) (imag-part z2))))
+  (define (mul-complex z1 z2)
+    (make-from-mag-ang 
+     (* (magnitude z1) (magnitude z2))
+     (+ (angle z1) (angle z2))))
+  (define (div-complex z1 z2)
+    (make-from-mag-ang 
+     (/ (magnitude z1) (magnitude z2))
+     (- (angle z1) (angle z2))))
+  ;; interface to rest of the system
+  (define (tag z) (attach-tag 'complex z))
+  (put 'add '(complex complex)
+       (lambda (z1 z2) 
+         (tag (add-complex z1 z2))))
+  (put 'sub '(complex complex)
+       (lambda (z1 z2) 
+         (tag (sub-complex z1 z2))))
+  (put 'mul '(complex complex)
+       (lambda (z1 z2) 
+         (tag (mul-complex z1 z2))))
+  (put 'div '(complex complex)
+       (lambda (z1 z2) 
+         (tag (div-complex z1 z2))))
+  (put 'make-from-real-imag 'complex
+       (lambda (x y) 
+         (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'complex
+       (lambda (r a) 
+         (tag (make-from-mag-ang r a))))
+  'done)
+#+END_SRC
+
+Notice that what we have here is a two-level tag system. The outer tag (complex) is used to direct the number to the
+complex package. Once within the complex package, the next tag (rectangular or polar) is used to direct the number to the
+rectangular or polar package.
+
+The procedures defined/installed so far allow operations only within a type e.g. add interger to an integer.
+What we have not yet considered is the fact that it is meaningful to define operations that cross the type boundaries,
+such as the addition of a complex number to an ordinary number. We would like to introduce the cross-type operations in
+some carefully controlled way, so that we can support them without seriously violating our module boundaries.
+
+One way to handle cross-type operations is to design a different procedure for each possible combination of types for
+which the operation is valid. e.g. define add-complex-to-schemenum. There are 4 operations and 3 types. Thus we will
+have to define 24 procedures i.e (4 operationts * 6 type permutations (3P2)).
+
+This technique works, but it is cumbersome. With such a system, the cost of introducing a new type is not just the
+construction of the package of procedures for that type but also the construction and installation of the procedures
+that implement the cross-type operations.The method also undermines our ability to combine separate packages additively.
+
+In the general situation of completely unrelated operations acting on completely unrelated types, implementing explicit
+cross-type operations, cumbersome though it may be, is the best that one can hope for. Fortunately, we can usually do
+better by taking advantage of additional structure that may be latent in our type system. Often the different data types
+are not completely independent, and there may be ways by which objects of one type may be viewed as being of another
+type. This process is called *coercion*.
+
+Although we still need to write coercion procedures to relate the types (possibly n^2 procedures for a system with n
+types), we need to write only one procedure for each pair of types rather than a different procedure for each collection
+of types and each generic operation. i.e. 6(or 9) instead of 24.
+
+#+BEGIN_SRC scheme
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 
+                       (get-coercion type1
+                                     type2))
+                      (t2->t1 
+                       (get-coercion type2 
+                                     type1)))
+                  (cond (t1->t2
+                         (apply-generic 
+                          op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic 
+                          op a1 (t2->t1 a2)))
+                        (else
+                         (error 
+                          "No method for 
+                           these types"
+                          (list 
+                           op 
+                           type-tags))))))
+              (error 
+               "No method for these types"
+               (list op type-tags)))))))
+#+END_SRC
+
+What we actually have is a so-called hierarchy of types (a tower), in which, for example, integers are a subtype of
+rational numbers (i.e., any operation that can be applied to a rational number can automatically be applied to an
+integer). If we have a tower structure, then we can greatly simplify the problem of adding a new type to the hierarchy,
+for we need only specify how the new type is embedded in the next supertype above it and how it is the supertype of the
+type below it.
+
+Unfortunately, this is usually not the case. Dealing with large numbers of interrelated types while still preserving
+modularity in the design of large systems is very difficult, and is an area of much current research.
+
 *** Notes
 - It is important to distinguish between the cases where you need generic operations or generic types while designing a
   system and its behaviour. i.e. horizontal or vertical abstraction.
 - At the end of the day, all you need is good abstraction and good implementation/execution of that abstraction. Good
   abstraction makes it easier for the users to understand and use your system. Good implementation/execution provides
   the necessary reliability so that user can have confidence in your system.
+
+
+* Chapter 3: Modularity, Objects and State
 
 * Miscellaneous
 
