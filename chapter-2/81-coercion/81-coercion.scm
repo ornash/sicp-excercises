@@ -87,3 +87,33 @@
 (define (raise number)
   ((get-coercion (type-tag number) (get-higher-type (type-tag number)))
    (contents number)))
+
+;; Exercise 2.84
+
+;; (define (get-priority type))
+
+(put-priority 'integer 1)
+(put-priority 'rational 2)
+(put-priority 'real 3)
+(put-priority 'complex 4)
+
+(define (apply-generic-pair op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (if ((eq? type1 type2) (no-method-error op type-tags))
+		    (let ((priority1 (get-priority type1))
+			  (priority2 (get-priority type2)))
+		      (cond 
+		       ((> priority2 priority1) (apply-generic-pair op (raise a1) a2))
+		       ((> priority1 priority2) (apply-generic-pair op a1 (raise a2)))
+		       (else (no-method-error op type-tags))))))
+              (no-method-error op type-tags))))))
+
+;; Skipping 2.85 and 2.86 should be similar.
