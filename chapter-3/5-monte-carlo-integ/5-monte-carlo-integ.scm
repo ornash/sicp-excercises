@@ -38,7 +38,26 @@
 (define (estimate-integral pred x1 x2 y1 y2 trials)
   (estimate-integral-bounds pred (bound x1 x2) (bound y1 y2) trials))
 
-(define (estimate-pi)
-  (estimate-integral point-check-pred -1 1 -1 1 30))
+(define (unit-circle-pred x y)
+  (>= 1 (+ (square x) (square y))))
 
-(define (point-check-pred ))
+(define (estimate-pi trials)
+  (estimate-integral unit-circle-pred -1 1 -1 1 trials))
+
+;;for verification, should return 4.
+(define (estimate-area trials)
+  (estimate-integral (lambda (x y)
+		       (and (and (>= x -1) (<= x 1)) (and (>= y -1) (<= y 1)))) -1 1 -1 1 trials))
+
+;; Exercise 3.6
+(define rand 
+  (let ((x random-init)) 
+    (define (dispatch message) 
+      (cond ((eq? message 'generate) 
+	     (begin (set! x (rand-update x)) 
+		    x)) 
+	    ((eq? message 'reset) 
+	     (lambda (new-value) (set! x new-value))))) 
+    dispatch)) 
+
+;;Skipping exercise 3.7 and 3.8

@@ -1228,6 +1228,14 @@ modularity in the design of large systems is very difficult, and is an area of m
 
 * Chapter 3: Modularity, Objects and State
 
+** Assignment and Local State
+
+*** Notes
+- A simple rule you can use in system design is to ask whether you need a *name* or *store* for your value/datym. Using
+  *name* implies that it is immutable and we have just assigned a name to a value. *store* on the other hand implies
+  that you want to store a value which can change from time to time.
+- 
+
 * Miscellaneous
 
 
