@@ -60,4 +60,4 @@
 	     (lambda (new-value) (set! x new-value))))) 
     dispatch)) 
 
-;;Skipping exercise 3.7 and 3.8
+;;Skipping exercise 3.7 and 3.27.

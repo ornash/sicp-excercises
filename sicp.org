@@ -766,6 +766,12 @@ permutations of sets with fewer elements than S.
   - What is "'''abc"?
   - What is "'(a (list b c) d)"?
   - What is "'(a (list 1 2) d)"?
+  - What is "'wow"?
+  - What is "(list 'w 'o 'w)"?
+  - What is "'(wow)"?
+  - What is "'(w o w)"?
+  - What is "(eq? '(wow) (list 'wow))"?
+  - What is "(equal? '(wow) (list 'wow))"?
 **** Notes
 - *Naming* is an important technique to simplify thinking about abstractions. Once you name an abstraction correctly you
   dont have to remember its implementation, you just remember the concept it represents and use it.
@@ -1234,6 +1240,128 @@ modularity in the design of large systems is very difficult, and is an area of m
 - A simple rule you can use in system design is to ask whether you need a *name* or *store* for your value/datym. Using
   *name* implies that it is immutable and we have just assigned a name to a value. *store* on the other hand implies
   that you want to store a value which can change from time to time.
+- Mutation itself and the languages allowing that aren't bad, it's a system design option that has its pros and
+  cons in terms of time and space complexity, readability, maintainability, abstraction etc. And sometimes the pros of
+  system design using mutable data outwiegh the design using immutable data.
+- System design with immutable data can also have drawbacks, e.g. information leakage, violation of abstraction
+  barriers, additional space or time complexity.
+
+** The Environment Model of Evaluation
+
+** Modeling with Mutable Data
+
+Compound data is a means for constructing computational objects that have several parts to model real-world objects that
+have several aspects. We achieve data abstraction over these compound data objects by using *constructors and
+selectors*. Change in state is another aspect of real-world objects which needs to be modeled by computational objects,
+this is achieved using *mutators* over compound data. Data objects with mutators are called mutable data objects.
+
+*** Mutable List Structure
+Pairs are a general-purpose “glue” for synthesizing compound data as seen in previous chapters. This section describes
+basic mutators for pairs, so that pairs can serve as building blocks for constructing mutable data objects.
+
+*** Notes
+- Mutators along with constructors and selectors now define the operations on abstract data. Mutators along with
+  constructors now allow the ability to change data.
+- By introducing just one extra operation of set! we raise all the issues, not only of assignment, but of mutable data
+  in general. Therefore, choose between a immutable or mutable design wisely.
+- When you use message passing i.e. dispatch to define an abstract data type, you have to define the procedures twice;
+  once within the abstract data type definition and once outside. The outside procedures always accepts the data object
+  of that type itself as the first argument and then reroutes the request with appropriate message.
+#+BEGIN_SRC scheme
+(define (cons x y)
+  (define (set-x! v) (set! x v))
+  (define (set-y! v) (set! y v))
+  (define (dispatch m)
+    (cond ((eq? m 'car) x)
+          ((eq? m 'cdr) y)
+          ((eq? m 'set-car!) set-x!)
+          ((eq? m 'set-cdr!) set-y!)
+          (else (error "Undefined 
+                 operation: CONS" m))))
+  dispatch)
+
+(define (car z) (z 'car))
+(define (cdr z) (z 'cdr))
+
+(define (set-car! z new-value)
+  ((z 'set-car!) new-value)
+  z)
+
+(define (set-cdr! z new-value)
+  ((z 'set-cdr!) new-value)
+  z)
+#+END_SRC
+- Higher order procedures are sometimes difficult to understand. e.g. Exercise 3.27
+#+BEGIN_SRC scheme
+(define memo-fib
+  (memoize 
+   (lambda (n)
+     (cond ((= n 0) 0)
+           ((= n 1) 1)
+           (else 
+            (+ (memo-fib (- n 1))
+               (memo-fib (- n 2))))))))
+
+(define (memoize f)
+  (let ((table (make-table)))
+    (lambda (x)
+      (let ((previously-computed-result 
+             (lookup x table)))
+        (or previously-computed-result
+            (let ((result (f x)))
+              (insert! x result table)
+              result))))))
+#+END_SRC
+This involves several things. 1. It is a two level recursion. 2. memo-fib is a name given to a procedure returned by
+memoize, Scheme should really have a way to distinguish between names given to data(e.g. define-data), names given to
+directly defined procedures(e.g. define-proc), and names given to lambdas(e.g. define-lambda).
+#+BEGIN_SRC scheme
+(define-lambda memo-fib
+  (memoize 
+   (lambda (n)
+     (cond ((= n 0) 0)
+           ((= n 1) 1)
+           (else 
+            (+ (memo-fib (- n 1))
+               (memo-fib (- n 2))))))))
+
+(define-proc (memoize f)
+  (let ((table (make-table)))
+    (lambda (x)
+      (let ((previously-computed-result 
+             (lookup x table)))
+        (or previously-computed-result
+            (let ((result (f x)))
+              (insert! x result table)
+              result))))))
+#+END_SRC
+This strategy however, raises an issue, the way parameters are attached to arguments of different types (i.e. data,
+procedures, lambdas) is the same, here you can't distinguish between them like we did with define-data, define-proc,
+define-lambda, this will make the language inconsistent. 
+Another way to get over this difficulty is using types. e.g. (define type-data abc 1) and (define type-lambda f (lamdba
+(x) (<body>))). We want something that pops out immediately while the programmer is reading the code/definition.
+With restrictions in Scheme, we can get over this difficulty by following naming conventions for names given to lambdas
+(prefix with lambda-) and procedures that return lambda (prefix with make-lambda-).
+#+BEGIN_SRC scheme
+(define lambda-memo-fib
+  (make-lambda-memoize
+   (lambda (n)
+     (cond ((= n 0) 0)
+           ((= n 1) 1)
+           (else 
+            (+ (lambda-memo-fib (- n 1))
+               (lambda-memo-fib (- n 2))))))))
+
+(define (make-lambda-memoize lambda-to-memoize)
+  (let ((table (make-table)))
+    (lambda (x)
+      (let ((previously-computed-result 
+             (lookup x table)))
+        (or previously-computed-result
+            (let ((result (lambda-to-memoize x)))
+              (insert! x result table)
+              result))))))
+#+END_SRC
 - 
 
 * Miscellaneous
