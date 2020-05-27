@@ -1259,11 +1259,72 @@ this is achieved using *mutators* over compound data. Data objects with mutators
 Pairs are a general-purpose “glue” for synthesizing compound data as seen in previous chapters. This section describes
 basic mutators for pairs, so that pairs can serve as building blocks for constructing mutable data objects.
 
+The primitive mutators for pairs are set-car! and set-cdr!.
+
+One way to detect sharing in list structures is to use the predicate eq?. ==(eq? x y)== tests whether x and y are the
+same object (that is, whether x and y are equal as pointers).
+
+We can exploit sharing to *greatly extend the repertoire of data structures* that can be represented by pairs. On the
+other hand, sharing can also be dangerous, since modifications made to structures will also affect other structures that
+happen to share the modified parts.
+
+Mutation is just assignment. We can implement mutable data objects as procedures using assignment and local state as
+follows:
+
+#+BEGIN_SRC scheme
+(define (cons x y)
+  (define (set-x! v) (set! x v))
+  (define (set-y! v) (set! y v))
+  (define (dispatch m)
+    (cond ((eq? m 'car) x)
+          ((eq? m 'cdr) y)
+          ((eq? m 'set-car!) set-x!)
+          ((eq? m 'set-cdr!) set-y!)
+          (else (error "Undefined 
+                 operation: CONS" m))))
+  dispatch)
+
+(define (car z) (z 'car))
+(define (cdr z) (z 'cdr))
+
+(define (set-car! z new-value)
+  ((z 'set-car!) new-value)
+  z)
+
+(define (set-cdr! z new-value)
+  ((z 'set-cdr!) new-value)
+  z)
+#+END_SRC
+
+Assignment is all that is needed, theoretically, to account for the behavior of mutable data.
+
+*** Representing Queues and Tables
+The mutators set-car! and set-cdr! enable us to use pairs to construct data structures that cannot be built with cons,
+car, and cdr alone. e.g. Queue, Table etc. 
+
+For example, in terms of data abstraction, we can regard a queue as defined by the following set of operations:
+1. a constructor: (make-queue) returns an empty queue (a queue containing no items).
+2. two selectors:
+   1. (empty-queue? ⟨queue⟩): tests if the queue is empty.
+   2. (front-queue ⟨queue⟩): returns the object at the front of the queue, signaling an error if the queue is empty; it
+      does not modify the queue.
+3. two mutators:
+   1. (insert-queue! ⟨queue⟩ ⟨item⟩): inserts the item at the rear of the queue and returns the modified queue as its
+      value.
+   2. (delete-queue! ⟨queue⟩): removes the item at the front of the queue and returns the modified queue as its value,
+      signaling an error if the queue is empty before the deletion.
+
+Because a queue is a sequence of items, we could certainly represent it as an ordinary list; however, this
+representation is inefficient, because the insert-queue operation takes Θ(n) steps. If we allow mutation, we can
+represent the queue as a list, together with an additional pointer that indicates the final pair in the list, the
+insert-queue operation now takes Θ(1) steps. A queue is represented, then, as a pair of pointers, front-ptr and
+rear-ptr. Table can be implemented similarly.
+
 *** Notes
 - Mutators along with constructors and selectors now define the operations on abstract data. Mutators along with
   constructors now allow the ability to change data.
 - By introducing just one extra operation of set! we raise all the issues, not only of assignment, but of mutable data
-  in general. Therefore, choose between a immutable or mutable design wisely.
+  in general. Therefore, choose between a immutable or mutable design wisely. Both have pros and cons.
 - When you use message passing i.e. dispatch to define an abstract data type, you have to define the procedures twice;
   once within the abstract data type definition and once outside. The outside procedures always accepts the data object
   of that type itself as the first argument and then reroutes the request with appropriate message.
