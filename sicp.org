@@ -1246,7 +1246,67 @@ modularity in the design of large systems is very difficult, and is an area of m
 - System design with immutable data can also have drawbacks, e.g. information leakage, violation of abstraction
   barriers, additional space or time complexity.
 
+
 ** The Environment Model of Evaluation
+
+*Original Substitution Model of Evaluation*: To apply a compound procedure to arguments, evaluate the body of the
+procedure with each formal parameter replaced by the corresponding argument.
+
+However, once we admit assignment into our programming language, such a definition is no longer adequate. In the
+presence of assignment, a variable can no longer be considered to be merely a name for a value. Rather, a variable must
+somehow designate a “place” in which values can be stored. Therefore, in our new model of evaluation, these places will
+be maintained in structures called *environments*.
+
+An environment is a sequence of frames. Each frame is a table (possibly empty) of bindings, which associate variable
+names with their corresponding values. (A single frame may contain at most one binding for any variable.) Each frame
+also has a pointer to its enclosing environment, unless, for the purposes of discussion, the frame is considered to be
+global. The value of a variable with respect to an environment is the value given by the binding of the variable in the
+first frame in the environment that contains a binding for that variable. If no frame in the sequence specifies a
+binding for the variable, then the variable is said to be unbound in the environment.
+
+The environment determines the context in which an expression should be evaluated. Indeed, one could say that
+expressions in a programming language do not, in themselves, have any meaning. Rather, an expression acquires a meaning
+only with respect to some environment in which it is evaluated. Even the interpretation of an expression as
+straightforward as (+ 1 1) depends on an understanding that one is operating in a context in which + is the symbol for
+addition.
+
+*** Rules of Evaluation
+
+The rules of evaluation of a combination remain the same, i.e. to evaluate a combination:
+- Evaluate the subexpressions of the combination.
+- Apply the value of the operator subexpression to the values of the operand subexpressions.
+
+The environment model of evaluation replaces the substitution model of evaluation in specifying what it means to apply a
+compound procedure to arguments. Before we define the environment model of evaluation we have to redefine what is a
+procedure. A procedure is always a pair consisting of some code and a pointer to an environment. Procedures are created
+in one way only: by evaluating a λ-expression. This produces a procedure whose code is obtained from the text of the
+λ-expression and whose environment is the environment in which the λ-expression was evaluated to produce the procedure.
+
+The environment model of evaluation specifies: To apply a procedure to arguments, create a new environment containing a
+frame that binds the parameters to the values of the arguments. The enclosing environment of this frame is the
+environment specified by the procedure. Now, within this new environment, evaluate the procedure body.
+
+Thus we redefined the procedure and we redefined the context for application of that procedure. The environment model of
+procedure application can be summarized by two rules:
+
+1. A procedure object is applied to a set of arguments by constructing a frame, binding the formal parameters of the
+   procedure to the arguments of the call, and then evaluating the body of the procedure in the context of the new
+   environment constructed. The new frame has as its enclosing environment the environment part of the procedure object
+   being applied.
+2. A procedure is created by evaluating a λ-expression relative to a given environment. The resulting procedure object
+   is a pair consisting of the text of the λ-expression and a pointer to the environment in which the procedure was
+   created.
+
+We can now specify the new definitions of *define* and *set!*.
+- define: defining a symbol using define creates a binding in the current environment frame and assigns to the symbol
+  the indicated value.
+- set!: Evaluating the expression (set! ⟨variable⟩ ⟨value⟩) in some environment locates the binding of the variable in
+  the environment and changes that binding to indicate the new value. That is, one finds the first frame in the
+  environment that contains a binding for the variable and modifies that frame. If the variable is unbound in the
+  environment, then set! signals an error.
+
+This affects the operations of simple procedures, ==let==, ==lambda== and internal procedures.
+
 
 ** Modeling with Mutable Data
 
@@ -1424,6 +1484,7 @@ With restrictions in Scheme, we can get over this difficulty by following naming
               result))))))
 #+END_SRC
 - 
+
 
 * Miscellaneous
 
