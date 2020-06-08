@@ -1380,6 +1380,11 @@ represent the queue as a list, together with an additional pointer that indicate
 insert-queue operation now takes Θ(1) steps. A queue is represented, then, as a pair of pointers, front-ptr and
 rear-ptr. Table can be implemented similarly.
 
+
+
+*** Propagation of Constraints
+
+
 *** Notes
 - Mutators along with constructors and selectors now define the operations on abstract data. Mutators along with
   constructors now allow the ability to change data.
@@ -1483,9 +1488,12 @@ With restrictions in Scheme, we can get over this difficulty by following naming
               (insert! x result table)
               result))))))
 #+END_SRC
-- 
-
-
+- Exercise 3.28 to 3.30. Some objects in real world need to be modeled with mutable data, note how the inverter is
+  defined, it is an operation that doesn't construct or return a wire, it accepts output wire as argument, this wire is
+  modeled with mutable data which changes state over time. So while designing systems, along with asking whether you
+  need a name or a store for value, you can also ask does the value change over time and if so, how.
+- Implementing "agenda": don't bring the notion of actual time in your system design if it is not required. Design at an
+  abstract level without notion of actual time as much as you can, introduce actual time when absolutely necessary.
 * Miscellaneous
 
 

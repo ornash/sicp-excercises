@@ -99,7 +99,7 @@
   'ok)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Combinations
+;; Combinations and Abstractions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Exercise 3.29
@@ -117,8 +117,8 @@
 (define (half-adder a b s c)
   (let ((d (make-wire)) (e (make-wire)))
     (or-gate a b d)
-    (and-gate a b c)
-    (inverter c e)
+    (and-gate a b e)
+    (inverter e c)
     (and-gate d e s)
     'ok))
 
@@ -142,6 +142,3 @@
 	 (cons c c-list)) 
     'ok)) 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Abstractions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
