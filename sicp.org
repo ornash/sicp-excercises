@@ -1358,6 +1358,17 @@ follows:
 
 Assignment is all that is needed, theoretically, to account for the behavior of mutable data.
 
+**** Notes
+- Mutators along with constructors and selectors now define the operations on abstract data. Mutators along with
+  constructors now allow the ability to change data.
+- By introducing just one extra operation of set! we raise all the issues, not only of assignment, but of mutable data
+  in general. Therefore, choose between a immutable or mutable design wisely. Both have pros and cons.
+- When you use message passing i.e. dispatch to define an abstract data type, you have to define the procedures twice;
+  once within the abstract data type definition and once outside. The outside procedures always accepts the data object
+  of that type itself as the first argument and then reroutes the request with appropriate message. e.g. check how car,
+  cdr, set-car! and set-cdr! are defined.
+
+
 *** Representing Queues and Tables
 The mutators set-car! and set-cdr! enable us to use pairs to construct data structures that cannot be built with cons,
 car, and cdr alone. e.g. Queue, Table etc. 
@@ -1380,43 +1391,7 @@ represent the queue as a list, together with an additional pointer that indicate
 insert-queue operation now takes Θ(1) steps. A queue is represented, then, as a pair of pointers, front-ptr and
 rear-ptr. Table can be implemented similarly.
 
-
-
-*** Propagation of Constraints
-
-
-*** Notes
-- Mutators along with constructors and selectors now define the operations on abstract data. Mutators along with
-  constructors now allow the ability to change data.
-- By introducing just one extra operation of set! we raise all the issues, not only of assignment, but of mutable data
-  in general. Therefore, choose between a immutable or mutable design wisely. Both have pros and cons.
-- When you use message passing i.e. dispatch to define an abstract data type, you have to define the procedures twice;
-  once within the abstract data type definition and once outside. The outside procedures always accepts the data object
-  of that type itself as the first argument and then reroutes the request with appropriate message.
-#+BEGIN_SRC scheme
-(define (cons x y)
-  (define (set-x! v) (set! x v))
-  (define (set-y! v) (set! y v))
-  (define (dispatch m)
-    (cond ((eq? m 'car) x)
-          ((eq? m 'cdr) y)
-          ((eq? m 'set-car!) set-x!)
-          ((eq? m 'set-cdr!) set-y!)
-          (else (error "Undefined 
-                 operation: CONS" m))))
-  dispatch)
-
-(define (car z) (z 'car))
-(define (cdr z) (z 'cdr))
-
-(define (set-car! z new-value)
-  ((z 'set-car!) new-value)
-  z)
-
-(define (set-cdr! z new-value)
-  ((z 'set-cdr!) new-value)
-  z)
-#+END_SRC
+**** Notes
 - Higher order procedures are sometimes difficult to understand. e.g. Exercise 3.27
 #+BEGIN_SRC scheme
 (define memo-fib
@@ -1488,12 +1463,26 @@ With restrictions in Scheme, we can get over this difficulty by following naming
               (insert! x result table)
               result))))))
 #+END_SRC
+
+
+*** Simulator for Digital Circuits
 - Exercise 3.28 to 3.30. Some objects in real world need to be modeled with mutable data, note how the inverter is
   defined, it is an operation that doesn't construct or return a wire, it accepts output wire as argument, this wire is
   modeled with mutable data which changes state over time. So while designing systems, along with asking whether you
   need a name or a store for value, you can also ask does the value change over time and if so, how.
 - Implementing "agenda": don't bring the notion of actual time in your system design if it is not required. Design at an
   abstract level without notion of actual time as much as you can, introduce actual time when absolutely necessary.
+
+
+*** Propagation of Constraints
+- Although the primitives, means of combination, and abstraction are beautifully defined in the constraint system, as
+  shown by Exercise [[./chapter-3/33-constraint-system/33-constraint-system.scm][3.34]], the programmer cannot simply use the primitives or abstractions, they do have to be aware of
+  the implementation or they will make mistakes.
+- It is difficult to keep track of stacks of calls and branches in the mind. It is easy to look at a sequence of
+  instructions and determine whats going on in code.
+- Check Exercise [[./chapter-3/33-constraint-system/33-constraint-system.scm][3.37]]. Implementation of c- and c/ is ingenious.
+
+
 * Miscellaneous
 
 
