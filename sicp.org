@@ -1481,7 +1481,16 @@ With restrictions in Scheme, we can get over this difficulty by following naming
 - It is difficult to keep track of stacks of calls and branches in the mind. It is easy to look at a sequence of
   instructions and determine whats going on in code.
 - Check Exercise [[./chapter-3/33-constraint-system/33-constraint-system.scm][3.37]]. Implementation of c- and c/ is ingenious.
+- How would you achieve propagation of constraints in object-oriented programming?
 
+
+** Concurrency: Time Is of the Essence
+
+*** Notes
+- e.g. [[./utilities/counting.scm][permutations]], while doing functional programming where you build up on top of lower layers, you have to remember
+  a lot of idioms, their definitions, and how they are implemented. How many of these can an average programmer remember?
+- check [[./chapter-3/section-3-4-2/section-3-4-2.scm][Section 3.4.2 formula.]]
+- 
 
 * Miscellaneous
 
