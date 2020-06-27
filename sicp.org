@@ -1486,11 +1486,54 @@ With restrictions in Scheme, we can get over this difficulty by following naming
 
 ** Concurrency: Time Is of the Essence
 
+Introducing set! in our computational model raised the questions about state(local or global), sameness and change. But
+the central issue behind this is that by introducing assignment we also introduced *time* in our computational
+model. Thus we are no longer dealing with value of x but we are dealing with value of x(t) which then forces us to
+consider *order* in which operations are performed which wasn't a concern before.
+
+However problematic, we cannot get around this problem, we have to manage and address it because that is how objects in
+the real world behave and interact with each other. If we are to model objects in physical world into computational
+models we have to admit time into our models. Objects in the world do not change one at a time in sequence. Rather we
+*perceive* them as acting concurrently—all at once. So it is often natural and sometimes essential to model systems as
+collections of computational processes that execute concurrently.
+
+Just as we can make our programs modular by organizing models in terms of objects with separate local state, it is often
+appropriate to divide computational models into parts that evolve separately and concurrently. Even if the programs are
+to be executed on a sequential computer, the practice of writing programs as if they were to be executed concurrently
+forces the programmer to avoid inessential timing constraints and thus makes programs more modular. Thus modeling for
+concurrency is not just a system requirement it is also essential to make our programs modular.
+
+Broadly there are three ways of modeling systems: immutable, mutable, concurrent. You should determine what kind of
+system you are modeling and design code accordingly. Immutable and immutable-concurrent modeling is relatively easy to
+code and think. Just mutable modeling is also easy if it doesn't involve concurrency considerations. But even a single
+processing computer involves pipelining, caching etc at lower level therefore mutable-concurrent modeling is essential,
+so design mutable code from the get go such that it is ready to handle concurrency. Concurrent processes are not a
+problem themselves, issues arise when concurrent processes either share some state or they have to communicate or
+interact.
+
+In addition to making programs more modular, concurrent computation can provide a speed advantage over sequential
+computation.
+
+*** The Nature of Time in Concurrent Systems
+
+To make concurrent programs behave correctly, we may have to place some restrictions on concurrent execution.
+
+One possible restriction on concurrency would stipulate that no two operations that change any shared state variables
+can occur at the same time. This is an extremely stringent requirement. A less stringent restriction on concurrency
+would ensure that a concurrent system produces the same result as if the processes had run sequentially in some
+order. There are two important aspects to this requirement. First, it does not require the processes to actually run
+sequentially, but only to produce results that are the same as if they had run sequentially. Second, there may be more
+than one possible “correct” result produced by a concurrent program, because we require only that the result be the same
+as for some sequential order. A more formal way to express this idea is to say that concurrent programs are inherently
+nondeterministic. That is, they are described not by single-valued functions, but by functions whose results are sets of
+possible values.
+
+
 *** Notes
 - e.g. [[./utilities/counting.scm][permutations]], while doing functional programming where you build up on top of lower layers, you have to remember
   a lot of idioms, their definitions, and how they are implemented. How many of these can an average programmer remember?
 - check [[./chapter-3/section-3-4-2/section-3-4-2.scm][Section 3.4.2 formula.]]
-- 
+
 
 * Miscellaneous
 
