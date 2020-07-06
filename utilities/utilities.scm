@@ -48,6 +48,12 @@
 	  (else (test (+ divisor 1)))))
   (test 2))
 
+(define (int-sum-at n) (/ (* n (+ n 1)) 2))
+
+(define (ints-until n) (if (= n 0) (list 0) (cons n (ints-until (- n 1)))))
+
+(define (sums-until n) (map int-sum-at (reverse (ints-until n))))
+
 ;;Enumeration utils
 (define (enumerate-interval low high)
   (if (> low high)
@@ -103,3 +109,15 @@
 	       (filter predicate (cdr sequence))))
 	(else (filter predicate (cdr sequence)))))
 
+
+;;Stream APIs
+(define (materialize-stream a-stream)
+  (if (stream-null? a-stream)
+      nil
+      (cons (stream-car a-stream) (materialize-stream (stream-cdr a-stream)))))
+
+(define (my-display-stream a-stream)
+  (map my-display (materialize-stream a-stream)))
+
+(define (display-stream s)
+  (stream-for-each display-line s))
