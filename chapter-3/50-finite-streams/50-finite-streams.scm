@@ -67,4 +67,3 @@
 ;;(display-stream z) ;; without memo-proc, first call will start with a base value of whatever is the current value of sum instead of 0.
 ;;assignment and streams together produce unpredictable results.
 ;;in general if operations in stream or on it have side-effects results will be unpredictable.
-

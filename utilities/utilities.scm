@@ -12,7 +12,7 @@
   (load-scheme-file name))
 
 ;;display followed by newline
-(define (my-display arg)
+(define (my-display . arg)
   (display arg)
   (newline))
 
@@ -111,13 +111,57 @@
 
 
 ;;Stream APIs
-(define (materialize-stream a-stream)
-  (if (stream-null? a-stream)
-      nil
-      (cons (stream-car a-stream) (materialize-stream (stream-cdr a-stream)))))
+;; Although a good idea, you shouldn't do this. A traversed stream is automatically materialized by memo-proc.
+;; (define (materialize-stream a-stream)
+;;   (if (stream-null? a-stream)
+;;       nil
+;;       (cons (stream-car a-stream) (materialize-stream (stream-cdr a-stream)))))
 
-(define (my-display-stream a-stream)
-  (map my-display (materialize-stream a-stream)))
+;; (define (my-display-stream a-stream)
+;;   (map my-display (materialize-stream a-stream)))
 
-(define (display-stream s)
-  (stream-for-each display-line s))
+(define (display-finite-stream s)
+  (stream-for-each my-display s))
+
+(define (sum-number-streams s1 s2)
+  (stream-map + s1 s2))
+
+(define (mul-number-streams s1 s2)
+  (stream-map * s1 s2))
+
+(define (stream-of-constant constant)
+  (define a-stream
+    (cons-stream constant a-stream))
+  a-stream)
+
+(define ones (stream-of-constant 1))
+
+(define integer-stream (cons-stream 1 (sum-number-streams ones integer-stream)))
+
+(define fibs-stream (cons-stream 0 (cons-stream 1 (sum-number-streams (stream-cdr fibs-stream)
+								      fibs-stream))))
+
+;; Infinite stream terminated by limit condition on companion stream(finite or infinite)
+;; If any of the inf-s or limit-s terminates, returned infinite-stream will terminate.
+(define (infine-stream-limited-by-limiter-and-cond inf-s limit-s limit-cond-lambda)
+  (cond ((stream-null? (stream-car inf-s)) the-empty-stream)
+	((stream-null? (stream-car limit-s)) the-empty-stream)
+	((limit-cond-lambda (stream-car limit-s)) the-empty-stream)
+	(else (cons-stream
+	       (stream-car inf-s)
+	       (infine-stream-limited-by-limiter-and-cond (stream-cdr inf-s) (stream-cdr limit-s) limit-cond-lambda)))))
+
+;; Infinite stream terminated by limit condition on itself.
+(define (infine-stream-limited-by-self-cond inf-s self-limit-cond-lambda)
+  (infine-stream-limited-by-limiter-and-cond inf-s inf-s self-limit-cond-lambda))
+
+;; Infinite stream terminated when companion stream terminates.
+(define (infine-stream-limited-by-limiter inf-s limit-s)
+  (infine-stream-limited-by-limiter-and-cond inf-s limit-s stream-null?))
+
+;; Infinite stream terminated when after limit-index elements are explored.
+(define (infine-stream-limited-by-index inf-s limit-index)
+  (infine-stream-limited-by-limiter-and-cond inf-s integer-stream (lambda (index) (> index limit-index))))
+
+(define (display-infinite-stream inf-s limit)
+  (stream-for-each my-display (infine-stream-limited-by-index inf-s limit)))
