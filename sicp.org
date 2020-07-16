@@ -1236,6 +1236,34 @@ modularity in the design of large systems is very difficult, and is an area of m
 
 ** Assignment and Local State
 
+#+BEGIN_SRC scheme
+
+(define count 0)
+(set! count 4)
+(define var count)
+count ;;4
+var ;;4
+(set! var 0)
+count ;;4
+var ;;0 because var and count are not the same.
+
+;;doesnt reset count even if called with (reset-var count), because the parameter count is a name given to the argument count which are two different things in the environment.
+(define (reset-var count) (set! count 0))
+
+;;doesnt reset count, because reset-var itself doesnt reset count
+(define reset-count (lambda (x) (reset-var count)))
+
+;;resets count to 0 and makes reset-count name map to 4 which is the value returned by set! since it was the old value of count before set to 0. reset-count is a name with value 4 so you cannot apply it. the set! is evaluated when you define reset-count.
+(define reset-count (set! count 0))
+
+;;resets count to 0 everytime it is evaluated because it is a name given to a lambda it can be applied/evaluated. it sets the count in the enclosing environment to 0.
+(define reset-count (lambda () (set! count 0)))
+
+;;resets count to 0 everytime it is evaluated because it is a procedure with no arguments. it sets the count in the enclosing environment to 0.
+(define (reset-count) (set! count 0))
+
+#+END_SRC
+
 *** Notes
 - A simple rule you can use in system design is to ask whether you need a *name* or *store* for your value/datym. Using
   *name* implies that it is immutable and we have just assigned a name to a value. *store* on the other hand implies

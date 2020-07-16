@@ -163,5 +163,41 @@
 (define (infine-stream-limited-by-index inf-s limit-index)
   (infine-stream-limited-by-limiter-and-cond inf-s integer-stream (lambda (index) (> index limit-index))))
 
-(define (display-infinite-stream inf-s limit)
+(define (display-infinite-stream limit inf-s)
   (stream-for-each my-display (infine-stream-limited-by-index inf-s limit)))
+
+(define (display-infinite-stream-pair limit inf-s1 inf-s2)
+  (stream-for-each my-display (infine-stream-limited-by-index inf-s1 limit) (infine-stream-limited-by-index inf-s2 limit)))
+
+(define (arithmetic-series-stream initial-value diff)
+  (define itself
+    (cons-stream initial-value (sum-number-streams (stream-of-constant diff) itself)))
+  itself)
+;;Note that although this is efficient and results in only n operations to arrive at nth term in series.
+;;If an entire stream is not required and you need nth term directly, use arithmetic series formula to get nth term.
+
+;;integer-stream can then be written as
+;;(define integer-stream (arithmetic-series-stream 1 1))
+
+(define (equal-interval-stream interval) (arithmetic-series-stream interval interval))
+;;integer-stream can then be written as
+;;(define integer-stream (equal-interval-stream 1))
+
+(define (sine-stream input-stream)
+  (stream-map sin input-stream))
+
+(define (cosine-stream input-stream)
+  (stream-map cos input-stream))
+
+(define (unit-circle-hypotenuse input-stream)
+  (stream-map (lambda (sine-val cosine-val)
+		(sqrt (+ (square sine-val) (square cosine-val))))
+	      (sine-stream input-stream)
+	      (cosine-stream input-stream)))
+
+(define (unit-circle-sine-cosine-ratio input-stream)
+  (stream-map (lambda (sine-val cosine-val)
+		(/ sine-val cosine-val))
+	      (sine-stream input-stream)
+	      (cosine-stream input-stream)))
+
