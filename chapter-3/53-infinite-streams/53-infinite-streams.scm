@@ -55,3 +55,12 @@
 ;; (display-infinite-stream (expand 1 7 10) 10) ;; repeats itself after few iterations
 ;; (display-infinite-stream (expand 3 8 10) 10) ;; reaches stable state at 0
 
+;; 3.59
+;; 3.59.1
+(define (integrate-series power-series-coefs)
+  (stream-map (lambda (term-no coef) (* coef (/ 1 term-no))) integer-stream power-series-coefs))
+
+;; 3.59.2
+(define exp-series
+  (cons-stream 
+   1 (integrate-series exp-series)))

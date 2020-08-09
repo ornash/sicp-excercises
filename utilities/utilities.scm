@@ -129,6 +129,11 @@
 (define (mul-number-streams s1 s2)
   (stream-map * s1 s2))
 
+(define (scale-stream factor stream)
+  (stream-map
+   (lambda (x) (* x factor))
+   stream))
+
 (define (stream-of-constant constant)
   (define a-stream
     (cons-stream constant a-stream))
@@ -142,32 +147,32 @@
 								      fibs-stream))))
 
 ;; Infinite stream terminated by limit condition on companion stream(finite or infinite)
-;; If any of the inf-s or limit-s terminates, returned infinite-stream will terminate.
-(define (infine-stream-limited-by-limiter-and-cond inf-s limit-s limit-cond-lambda)
+;; If any of the inf-s or limit-s terminates, returned inf-stream will terminate.
+(define (inf-stream-limited-by-limiter-and-cond inf-s limit-s limit-cond-lambda)
   (cond ((stream-null? (stream-car inf-s)) the-empty-stream)
 	((stream-null? (stream-car limit-s)) the-empty-stream)
 	((limit-cond-lambda (stream-car limit-s)) the-empty-stream)
 	(else (cons-stream
 	       (stream-car inf-s)
-	       (infine-stream-limited-by-limiter-and-cond (stream-cdr inf-s) (stream-cdr limit-s) limit-cond-lambda)))))
+	       (inf-stream-limited-by-limiter-and-cond (stream-cdr inf-s) (stream-cdr limit-s) limit-cond-lambda)))))
 
 ;; Infinite stream terminated by limit condition on itself.
-(define (infine-stream-limited-by-self-cond inf-s self-limit-cond-lambda)
-  (infine-stream-limited-by-limiter-and-cond inf-s inf-s self-limit-cond-lambda))
+(define (inf-stream-limited-by-self-cond inf-s self-limit-cond-lambda)
+  (inf-stream-limited-by-limiter-and-cond inf-s inf-s self-limit-cond-lambda))
 
 ;; Infinite stream terminated when companion stream terminates.
-(define (infine-stream-limited-by-limiter inf-s limit-s)
-  (infine-stream-limited-by-limiter-and-cond inf-s limit-s stream-null?))
+(define (inf-stream-limited-by-limiter inf-s limit-s)
+  (inf-stream-limited-by-limiter-and-cond inf-s limit-s stream-null?))
 
 ;; Infinite stream terminated when after limit-index elements are explored.
-(define (infine-stream-limited-by-index inf-s limit-index)
-  (infine-stream-limited-by-limiter-and-cond inf-s integer-stream (lambda (index) (> index limit-index))))
+(define (inf-stream-limited-by-index inf-s limit-index)
+  (inf-stream-limited-by-limiter-and-cond inf-s integer-stream (lambda (index) (> index limit-index))))
 
-(define (display-infinite-stream limit inf-s)
-  (stream-for-each my-display (infine-stream-limited-by-index inf-s limit)))
+(define (display-inf-stream limit inf-s)
+  (stream-for-each my-display (inf-stream-limited-by-index inf-s limit)))
 
-(define (display-infinite-stream-pair limit inf-s1 inf-s2)
-  (stream-for-each my-display (infine-stream-limited-by-index inf-s1 limit) (infine-stream-limited-by-index inf-s2 limit)))
+(define (display-inf-stream-pair limit inf-s1 inf-s2)
+  (stream-for-each my-display (inf-stream-limited-by-index inf-s1 limit) (inf-stream-limited-by-index inf-s2 limit)))
 
 (define (arithmetic-series-stream initial-value diff)
   (define itself
@@ -182,6 +187,14 @@
 (define (equal-interval-stream interval) (arithmetic-series-stream interval interval))
 ;;integer-stream can then be written as
 ;;(define integer-stream (equal-interval-stream 1))
+
+(define (sample-inf-stream interval input-stream)
+  (define (roll-forward count stream)
+    (if (= count 0)
+	stream
+	(roll-forward (- count 1) (stream-cdr stream))))
+  (cons-stream (stream-car input-stream)
+	       (sample-inf-stream interval (roll-forward interval input-stream))))
 
 (define (sine-stream input-stream)
   (stream-map sin input-stream))
@@ -201,3 +214,20 @@
 	      (sine-stream input-stream)
 	      (cosine-stream input-stream)))
 
+(define (integral constant dx input-stream)
+  (define area-stream (scale-stream dx input-stream))
+  (define itself
+    (cons-stream constant
+		 (sum-number-streams area-stream itself)))
+  itself)
+
+(define (streams-as-pair-stream s1 s2)
+  (stream-map (lambda (x y) (cons x y)) s1 s2))
+
+;;(display-inf-stream 2000 (cosine-stream (equal-interval-stream 0.001)))
+;;(display-inf-stream 2000 (scale-stream 1000 (cosine-stream (equal-interval-stream 0.001))))
+;;filter values perfectly divisible by 10 in a dataset with 1000 points (1/0.001) to get 100 sample values
+;;filter values perfectly divisible by 100 in a dataset with 1000 points (1/0.001) to get 10 sample values
+;;(= 0 (remainder (floor 20.1234) 10))
+;;(display-inf-stream 2000 (stream-filter (lambda (x) (= 0 (remainder (floor x) 10))) (scale-stream 1000 (cosine-stream (equal-interval-stream 0.001)))))
+;;find corresponding sine and you are done.
