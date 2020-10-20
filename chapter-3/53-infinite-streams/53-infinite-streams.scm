@@ -57,10 +57,37 @@
 
 ;; 3.59
 ;; 3.59.1
+;;(define (integrate-series power-series-coefs)
+;;  (stream-map (lambda (term-no coef) (* coef (/ 1 term-no))) integer-stream power-series-coefs))
+
 (define (integrate-series power-series-coefs)
-  (stream-map (lambda (term-no coef) (* coef (/ 1 term-no))) integer-stream power-series-coefs))
+  (stream-map / power-series-coefs integer-stream))
 
 ;; 3.59.2
 (define exp-series
   (cons-stream 
    1 (integrate-series exp-series)))
+
+;;another way to get exp-series
+;;(define exp-series 
+;;   (stream-map / ones (cons-stream 1 factorials))) 
+
+(define cosine-series 
+  (cons-stream 1 (stream-map - (integrate-series sine-series))))
+
+(define sine-series 
+  (cons-stream 0 (integrate-series cosine-series)))
+
+;;stream of x^y where y goes from 0 to infinity
+(define (term-stream x)
+  (stream-map expt (stream-of-constant x) (integers-starting-from 0)))
+
+;; testing
+;; find sin(22/7/4) i.e. sin(0.7857)
+;; summing up values returned by the following results in a correct value of 0.707320181
+;; (display-inf-stream 10 (mul-number-streams (term-stream 0.7857) sine-series))
+
+;; you can sum up automatically using integral as follows and see how the results stabilize
+;; (display-inf-stream 20 (integral 0 1 (mul-number-streams (term-stream 0.7857) sine-series)))
+
+

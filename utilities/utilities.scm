@@ -141,7 +141,13 @@
 
 (define ones (stream-of-constant 1))
 
-(define integer-stream (cons-stream 1 (sum-number-streams ones integer-stream)))
+(define (integers-starting-from n)
+  (cons-stream 
+   n (integers-starting-from (+ n 1))))
+
+(define integer-stream (integers-starting-from 1))
+
+;;(define integer-stream (cons-stream 1 (sum-number-streams ones integer-stream)))
 
 (define fibs-stream (cons-stream 0 (cons-stream 1 (sum-number-streams (stream-cdr fibs-stream)
 								      fibs-stream))))
