@@ -82,6 +82,12 @@
 (define (term-stream x)
   (stream-map expt (stream-of-constant x) (integers-starting-from 0)))
 
+(define (my-sine x)
+  (mul-number-streams (term-stream x) sine-series))
+
+(define (my-cosine x)
+  (mul-number-streams (term-stream x) cosine-series))
+
 ;; testing
 ;; find sin(22/7/4) i.e. sin(0.7857)
 ;; summing up values returned by the following results in a correct value of 0.707320181
@@ -91,3 +97,27 @@
 ;; (display-inf-stream 20 (integral 0 1 (mul-number-streams (term-stream 0.7857) sine-series)))
 
 
+;; 3.60
+;; This one is interesting. There is no one answer for this.
+;; Until now, we have seen streams that expand to infinity in a linear list.
+;; This problem involves tree of streams and therefore can be organized in different ways leading to different answers.
+;; e.g. take two 5 element series, the multiplication has 25 terms, there are multiple ways to arrive at those 25 terms.
+(define (mul-series s1 s2)
+  (cons-stream (* (stream-car s1) (stream-car s2))
+               (sum-number-streams (scale-stream (stream-car s1) (stream-cdr s2)) 
+			    (mul-series (stream-cdr s1) s2))))
+
+(define (sine-squared x) (mul-series (my-sine x) (my-sine x)))
+
+(define (cosine-squared x) (mul-series (my-cosine x) (my-cosine x)))
+
+;; testing sin^2 x + cos^2 x = 1
+;; (display-inf-stream 20 (integral 0 1 (sum-number-streams (sine-squared 0.7857) (cosine-squared 0.7857) )))
+
+;; 3.61
+;; We can do this because the constant term of power series is 1
+;; Just rearranging the terms makes a difficult problem/operation very simple. We transformed division into multiplication.
+(define (invert-unit-series power-series) 
+  (define itself 
+    (cons-stream 1 (scale-stream -1 (mul-series (stream-cdr power-series) itself)))) 
+  itself) 
