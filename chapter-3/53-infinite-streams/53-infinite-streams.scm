@@ -104,7 +104,7 @@
 ;; e.g. take two 5 element series, the multiplication has 25 terms, there are multiple ways to arrive at those 25 terms.
 (define (mul-series s1 s2)
   (cons-stream (* (stream-car s1) (stream-car s2))
-               (sum-number-streams (scale-stream (stream-car s1) (stream-cdr s2)) 
+               (sum-number-streams (scale-stream (stream-car s1) (stream-cdr s2))
 			    (mul-series (stream-cdr s1) s2))))
 
 (define (sine-squared x) (mul-series (my-sine x) (my-sine x)))
@@ -117,7 +117,26 @@
 ;; 3.61
 ;; We can do this because the constant term of power series is 1
 ;; Just rearranging the terms makes a difficult problem/operation very simple. We transformed division into multiplication.
-(define (invert-unit-series power-series) 
+(define (invert-unit-series power-series)
+  (define itself
+    (cons-stream 1 (scale-stream -1 (mul-series (stream-cdr power-series) itself))))
+  itself)
+
+;; 3.62
+;; Express division as multiplication of numerator and inverted-dinominator
+
+;; first define generic invert-series
+(define (invert-series power-series)
+  (if (= 0 (stream-car power-series)) (error "First term of power-series must be non-zero"))
   (define itself 
-    (cons-stream 1 (scale-stream -1 (mul-series (stream-cdr power-series) itself)))) 
-  itself) 
+    (cons-stream (stream-car power-series) (scale-stream -1 (mul-series (stream-cdr power-series) itself)))) 
+  itself)
+
+(define (div-series s1 s2)
+  (mul-series s1 (invert-series s2)))
+
+(define tangent-series 
+  (div-series sine-series cosine-series))
+
+(define (my-tangent x)
+  (mul-number-streams (term-stream x) tangent-series))
