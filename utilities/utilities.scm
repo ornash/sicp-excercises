@@ -123,6 +123,12 @@
 (define (display-finite-stream s)
   (stream-for-each my-display s))
 
+(define (accumulate-finite-stream op initial s)
+  (if (stream-null? s)
+      initial
+      (op (stream-car s)
+          (accumulate op initial (stream-cdr s)))))
+
 (define (sum-number-streams s1 s2)
   (stream-map + s1 s2))
 

@@ -65,3 +65,60 @@
 (define ln2-stream
   (partial-sums (ln2-summands 1)))
 
+;; 3.66
+(define (interleave s1 s2)
+  (if (stream-null? s1)
+      s2
+      (cons-stream 
+       (stream-car s1)
+       (interleave s2 (stream-cdr s1)))))
+
+(define (pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave
+    (stream-map (lambda (x)
+                  (list (stream-car s) x))
+                (stream-cdr t))
+    (pairs (stream-cdr s) (stream-cdr t)))))
+
+;; testing
+(define (check-pair apair left right) (if (and (= left (car apair)) (= right (cadr apair))) #t #f))
+(define (temp-check-pair apair) (check-pair apair 3 100))
+(stream-length (inf-stream-limited-by-self-cond (pairs integer-stream integer-stream) temp-check-pair))
+
+;; x(n) = summation [as n goes from n to 1] (2 + (2 * x(n+1)))
+;; and x(1) = x(2) i.e. previous-count, if max(n) = 1 then first-count.
+;; where first-count is defined as
+;; if i == j, first-count = 0
+;; if i < j, first-count = ((2 * (j - i)) - 1)
+(define (preceding-pairs-count i j)
+  (define (recurrent-relation n previous-count)
+    (if (= 1 n)
+	previous-count
+	(recurrent-relation (- n 1) (+ 2 (* 2 previous-count)))))
+  (cond ((> i j) (error "i cannot be greater than j."))
+	((< i j) (recurrent-relation i (- (* 2 (- j i)) 1)))
+	(else (recurrent-relation i 0))))
+
+;; 3.67
+(define (pairs-all s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave
+    (stream-map (lambda (x)
+                  (list (stream-car s) x))
+                (stream-cdr t))
+    (pairs-all (stream-cdr s) t))))
+
+;; 3.68
+(define (pairs-louis s t)
+  (interleave
+   (stream-map
+    (lambda (x) 
+      (list (stream-car s) x))
+    t)
+   (pairs-louis (stream-cdr s)
+          (stream-cdr t))))
+
+;; 3.69
