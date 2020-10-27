@@ -122,3 +122,62 @@
           (stream-cdr t))))
 
 ;; 3.69
+(define (triples s t u)
+  (cons-stream
+   (list (stream-car s) (stream-car t) (stream-car u))
+   (interleave
+    (stream-map (lambda (x)
+                  (cons (stream-car s) x))
+                (pairs (stream-cdr t) (stream-cdr u)))
+    (triples (stream-cdr s) (stream-cdr t) (stream-cdr u)))))
+
+(define (pythagorean-triples s t u)
+  (stream-filter (lambda (tripl)
+		   (= (square (caddr tripl))
+		      (+ (square (car tripl)) (square (cadr tripl)))))
+		 (triples s t u)))
+
+;; 3.70
+(define (merge-weighted weight pairs1 pairs2)
+  (cond ((stream-null? pairs1) pairs2)
+        ((stream-null? pairs2) pairs1)
+        (else
+         (let ((p1 (stream-car pairs1))
+	       (p2 (stream-car pairs2))
+	       (p1-weight (weight (stream-car pairs1)))
+               (p2-weight (weight (stream-car pairs2))))
+           (cond ((< p1-weight p2-weight)
+                  (cons-stream
+                   p1
+                   (merge-weighted weight (stream-cdr pairs1) pairs2)))
+                 ((> p1-weight p2-weight)
+                  (cons-stream 
+                   p2
+                   (merge-weighted weight pairs1 (stream-cdr pairs2))))
+                 (else
+                  (cons-stream 
+                   p1
+                   (merge-weighted weight (stream-cdr pairs1) pairs2))))))))
+
+
+(define (pairs-weighted weight s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (merge-weighted weight
+		   (stream-map (lambda (x)
+				 (list (stream-car s) x))
+			       (stream-cdr t))
+		   (pairs-weighted weight (stream-cdr s) (stream-cdr t)))))
+
+(define (weight-sum pair)
+  (+ (car pair) (cadr pair)))
+
+(define (weight-sum-235 pair)
+  (let ((two-i (* 2 (car pair)))
+	(three-j (* 3 (cadr pair)))
+	(five-ij (* 5 (* (car pair) (cadr pair)))))
+    (+ (+ two-i three-j) five-ij)))
+
+;; testing
+;; (display-inf-stream 20 (pairs-weighted weight-sum integer-stream integer-stream))
+;; (display-inf-stream 20 (pairs-weighted weight-sum-235 integer-stream integer-stream))
