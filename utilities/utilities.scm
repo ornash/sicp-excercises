@@ -30,6 +30,8 @@
 
 (define (square x)
   (* x x))
+(define (cube x)
+  (* x x x))
 (define (even? x)
   (= (modulo x 2) 0))
 (define (odd? x)

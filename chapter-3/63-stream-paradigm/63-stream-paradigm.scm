@@ -176,8 +176,30 @@
   (let ((two-i (* 2 (car pair)))
 	(three-j (* 3 (cadr pair)))
 	(five-ij (* 5 (* (car pair) (cadr pair)))))
-    (+ (+ two-i three-j) five-ij)))
+    (+ two-i three-j five-ij)))
 
 ;; testing
 ;; (display-inf-stream 20 (pairs-weighted weight-sum integer-stream integer-stream))
 ;; (display-inf-stream 20 (pairs-weighted weight-sum-235 integer-stream integer-stream))
+
+;; 3.71
+(define (weight-sum-cubed pair)
+  (+ (cube (car pair)) (cube (cadr pair))))
+
+
+;; testing
+;; (display-inf-stream 20 (pairs-weighted weight-sum-cubed integer-stream integer-stream))
+
+(define (equi-weight-consecutive-pairs weight head tail)
+  (cond ((stream-null? tail) the-empty-stream)
+	((= (weight head) (weight (stream-car tail)))
+	 (cons-stream (list head (stream-car tail) (weight head))
+		      (equi-weight-consecutive-pairs weight (stream-car tail) (stream-cdr tail))))
+	(else (equi-weight-consecutive-pairs weight (stream-car tail) (stream-cdr tail)))))
+
+(define ramanujan-numbers
+  (let ((weight-ordered-pairs (pairs-weighted weight-sum-cubed integer-stream integer-stream)))
+    (equi-weight-consecutive-pairs weight-sum-cubed
+				   (stream-car weight-ordered-pairs)
+				   (stream-cdr weight-ordered-pairs))))
+
