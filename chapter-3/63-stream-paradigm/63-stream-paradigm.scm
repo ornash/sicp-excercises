@@ -203,3 +203,7 @@
 				   (stream-car weight-ordered-pairs)
 				   (stream-cdr weight-ordered-pairs))))
 
+;; Note: Problems can be solved in completely new ways if you change the paradigm of they way you think about problem, process/computation and its solution.
+;; e.g. think about how you would solve ramanujan-numbers problem without streams and then think about how streams simplify the solution.
+;; We are delaying the computation until it is really required.
+;; Richard Hamming also refers to this in his lectures. e.g. switch from analog to digital computing.
