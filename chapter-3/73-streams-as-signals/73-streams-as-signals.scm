@@ -20,3 +20,5 @@
 (define zero-crossings
   (stream-map sign-change-detector sense-data (cons-stream 0 sense-data)))
 
+;; Skipping 3.75 to 3.82
+;; Check http://community.schemewiki.org/?sicp-ex-3.75

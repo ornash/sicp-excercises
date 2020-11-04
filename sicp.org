@@ -1632,6 +1632,203 @@ fundamental complexity of the physical universe.
 - check [[./chapter-3/section-3-4-2/section-3-4-2.scm][Section 3.4.2 formula.]]
 
 
+** Streams
+
+Assignment is a good tool that solved some of our modeling problems but it also raised some complex problems. Can we
+model the "state" better to avoid these problems? This section explores an alternative approach to modeling state,
+based on data structures called streams. Streams can mitigate some of the complexity of modeling state.
+
+In an attempt to model real-world phenomena; we modeled real-world objects with local state by computational objects
+with local variables, we identified time variation in the real world with time variation in the computer, we implemented
+the time variation of the states of the model objects in the computer with assignments to the local variables of the
+model objects. Is there another approach?
+
+If we think about the issue in terms of mathematical functions, we can describe the time-varying behavior of a quantity
+x as a function of time x(t). If we concentrate on x instant by instant, we think of it as a changing quantity. But if we
+concentrate on the entire time history of values, we do not emphasize change — the function itself does not change.
+
+If time is measured in discrete steps, then we can model a time function as a (possibly infinite) sequence. Similarly,
+we can model "change" in terms of sequences that represent the time histories of the systems being modeled. Streams data
+structure provides a way to accomplish this. A stream is not simply a sequence or list. To implement streams we
+introduce a technique called delayed evaluation, which enables us to represent very large (even infinite) sequences as
+streams. Stream processing lets us model systems that have state without ever using assignment or mutable data which
+avoids the drawbacks inherent in introducing assignment. On the other hand, the stream framework raises difficulties of
+its own, and the question of which modeling technique leads to more modular and more easily maintained systems remains
+open. Nevertheless, it is powerful technique of modeling systems depending on the application.
+
+*** Streams Are Delayed Lists
+
+This section describes how streams are just delayed lists, how streams are implemented, how to use them and how it
+affects/improves modeling of systems using one of the first applications of streams i.e. conventional interfaces.
+
+As seen in previous sections, sequences serve as a standard interface for combining program modules. Powerful
+abstractions for manipulating sequences, such as map, filter, and accumulate, capture a wide variety of operations in a
+manner that is both succinct and elegant. Unfortunately, this elegance is bought at the price of severe inefficiency
+with respect to both the time and space. 
+
+
+#+BEGIN_SRC scheme
+(define (sum-primes a b)
+  (define (iter count accum)
+    (cond ((> count b) accum)
+          ((prime? count)
+           (iter (+ count 1)
+                 (+ count accum)))
+          (else (iter (+ count 1) accum))))
+  (iter a 0))
+
+(define (sum-primes a b)
+  (accumulate 
+   +
+   0
+   (filter prime? (enumerate-interval a b))))
+#+END_SRC
+
+Compare these two implementations for efficiency. Although the second implementation is succint it doesn't scale
+becausee complete lists of elements has to be generated before passing it to the next conventional interface, the first
+program with iterative style performs better but isn't as succint. The performance penality becomes even more severe if
+only first few elements of the result are used by the caller. Is there a way to solve both problems?
+
+Streams are a clever idea that allows one to use sequence manipulations without incurring the costs of manipulating
+sequences as lists. With streams we can achieve the best of both worlds: We can formulate programs elegantly as sequence
+manipulations, while attaining the efficiency of incremental computation. The basic idea is to arrange to construct a
+stream only partially, and to pass the partial construction to the program that consumes the stream. If the consumer
+attempts to access a part of the stream that has not yet been constructed, the stream will automatically construct just
+enough more of itself to produce the required part, thus preserving the illusion that the entire stream exists. In other
+words, although we will write programs as if we were processing complete sequences, we design our stream implementation
+to automatically and transparently interleave the construction of the stream with its use. Thus streams erase the
+distinction between code and data even more. You can create magic if you start treating code and data the
+same. Following paragraphs describe how stream data structure is implemented and new conventional interfaces using
+streams.
+
+- Stream constructor: cons-stream
+- Stream selectors: stream-car, stream-cdr
+- Other stream procedures: stream-null?, the-empty-stream, stream-ref, stream-map, stream-for-each
+
+With ordinary lists, both the car and the cdr are evaluated at construction time. With streams, the cdr is evaluated at
+selection time. Implementation of streams will be based on a special form called delay. Evaluating (delay ⟨exp⟩) does
+not evaluate the expression ⟨exp⟩, but rather returns a so-called delayed object, which we can think of as a “promise”
+to evaluate ⟨exp⟩ at some future time. As a companion to delay, there is a procedure called force that takes a delayed
+object as argument and performs the evaluation—in effect, forcing the delay to fulfill its promise. We will see below
+how delay and force can be implemented, but first let us use these to construct streams.
+
+Cons-stream is a *special form* defined so that
+
+#+BEGIN_SRC scheme
+(cons-stream ⟨a⟩ ⟨b⟩)
+#+END_SRC
+
+is equivalent to 
+
+#+BEGIN_SRC scheme
+(cons ⟨a⟩ (delay ⟨b⟩))
+#+END_SRC
+
+What this means is that we will construct streams using pairs. However, rather than placing the value of the rest of the
+stream into the cdr of the pair we will put there a promise to compute the rest if it is ever requested. Stream-car and
+stream-cdr can now be defined as procedures:
+
+#+BEGIN_SRC sceheme
+(define (stream-car stream) 
+  (car stream))
+
+(define (stream-cdr stream) 
+  (force (cdr stream)))
+#+END_SRC
+
+Stream-car selects the car of the pair; stream-cdr selects the cdr of the pair and evaluates the delayed expression
+found there to obtain the rest of the stream.
+
+Although stream-car and stream-cdr can be defined as procedures, cons-stream must be a *special form*. If cons-stream were
+a procedure, then, according to our model of evaluation, evaluating ==(cons-stream ⟨a⟩ ⟨b⟩)== would automatically cause
+==⟨b⟩== to be evaluated, which is precisely what we do not want to happen. For the same reason, delay must be a special
+form, though force can be an ordinary procedure.
+
+
+**** Stream implementation in action.
+
+#+BEGIN_SRC scheme
+(define (stream-enumerate-interval low high)
+  (if (> low high)
+      the-empty-stream
+      (cons-stream
+       low
+       (stream-enumerate-interval (+ low 1) high))))
+
+(define (stream-filter pred stream)
+  (cond ((stream-null? stream) 
+         the-empty-stream)
+        ((pred (stream-car stream))
+         (cons-stream 
+          (stream-car stream)
+          (stream-filter 
+           pred
+           (stream-cdr stream))))
+        (else (stream-filter 
+               pred 
+               (stream-cdr stream)))))
+
+(stream-car 
+ (stream-cdr
+  (stream-filter 
+   prime? (stream-enumerate-interval 
+           10000 1000000))))
+#+END_SRC
+
+Note that all operations being used are stream based, even 1 non-stream operation in wrong place can lead to early eval
+instead of lazy/delayed evaluation.
+
+We can think of delayed evaluation as “demand-driven” programming, whereby each stage in the stream process is activated
+only enough to satisfy the next stage. What we have done is to decouple the actual order of events in the computation
+from the apparent structure of our procedures. We write procedures as if the streams existed “all at once” when, in
+reality, the computation is performed incrementally, as in traditional programming styles. Question: CPUs like to do
+pipelining for performance, does this hinder or aid pipelining?
+
+**** Implementing delay and force
+
+Delay must package an expression so that it can be evaluated later on demand. Delay can be a special form such that
+
+==(delay ⟨exp⟩)== is syntactic sugar for ==(lambda () ⟨exp⟩)==
+
+Force simply calls the procedure (of no arguments) produced by delay, so we can implement force as a procedure:
+
+#+BEGIN_SRC scheme
+(define (force delayed-object)
+  (delayed-object))
+#+END_SRC
+
+We can include an important optimization. In many applications, we end up forcing the same delayed object many
+times. The solution is to build delayed objects so that the first time they are forced, they store the value that is
+computed i.e. memoization.
+
+#+BEGIN_SRC 
+(define (memo-proc proc)
+  (let ((already-run? false) (result false))
+    (lambda ()
+      (if (not already-run?)
+          (begin (set! result (proc))
+                 (set! already-run? true)
+                 result)
+          result))))
+#+END_SRC
+
+Delay is then defined so that ==(delay ⟨exp⟩)== is equivalent to ==(memo-proc (lambda () ⟨exp⟩))== and force is as
+defined previously. Note that there are many possible implementations of streams other than the one described in this
+section.
+
+*** Notes
+
+It is important to remember that Streams is a *data structure*. This data structure enables modeling of systems in a
+fundamentally different way which is where systems modeled with streams derive their power from. Modeling systems with
+streams might feel awkward here because you have to use stream specific operations like stream-car, stream-cdr,
+stream-null?, stream-map, etc. but chapter 4 deals with framework that unifies lists and streams so that modeling
+systems using streams isn't awkward. Here are few important properties of streams:
+
+1. Streams are delayed lists.
+2. Streams use memoization for efficiency.
+3. Streams lets you model *infinite* data.
+4. Streams erase the distinction between code and data further.
+
 * Miscellaneous
 
 
