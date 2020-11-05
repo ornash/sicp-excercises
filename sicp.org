@@ -1816,6 +1816,236 @@ Delay is then defined so that ==(delay ⟨exp⟩)== is equivalent to ==(memo-pro
 defined previously. Note that there are many possible implementations of streams other than the one described in this
 section.
 
+
+*** Infinite Streams
+
+Here are some examples of infinite streams.
+
+#+BEGIN_SRC scheme
+(define (integers-starting-from n)
+  (cons-stream 
+   n (integers-starting-from (+ n 1))))
+(define integers (integers-starting-from 1))
+
+(define (divisible? x y) (= (remainder x y) 0))
+(define no-sevens
+  (stream-filter (lambda (x) 
+                   (not (divisible? x 7)))
+                 integers))
+
+(define (fibgen a b)
+  (cons-stream a (fibgen b (+ a b))))
+(define fibs (fibgen 0 1))
+
+(define (sieve stream)
+  (cons-stream
+   (stream-car stream)
+   (sieve (stream-filter
+           (lambda (x)
+             (not (divisible? 
+                   x (stream-car stream))))
+           (stream-cdr stream)))))
+
+(define primes 
+  (sieve (integers-starting-from 2)))
+#+END_SRC
+
+For each of the above streams, think how would the stack and memoization look like when you are accessing elements deep
+into the stream. e.g. stack of integers is trivial but that of sieve/prime is huge. Stack affects your systems design's
+space complexity.
+
+**** Defining streams implicitly
+
+The integers, fibs and primes streams above were defined by specifying “generating” procedures that explicitly compute
+the stream elements one by one. We can get more creative here, an alternative way to specify streams is to take
+advantage of delayed evaluation to define streams implicitly i.e. define streams in terms of itself.
+
+This means that next element of stream is based on one or all previous elements of itself. This is different from
+"generating" procedure where next element is based on some "generating" procedure logic
+
+#+BEGIN_SRC scheme
+(define ones (cons-stream 1 ones))
+
+(define (add-streams s1 s2) 
+  (stream-map + s1 s2))
+
+(define integers 
+  (cons-stream 1 (add-streams ones integers)))
+
+(define fibs 
+  (cons-stream 
+   0 (cons-stream
+      1 (add-streams 
+         (stream-cdr fibs) fibs))))
+
+(define (prime? n)
+  (define (iter ps)
+    (cond ((> (square (stream-car ps)) n) true)
+          ((divisible? n (stream-car ps)) false)
+          (else (iter (stream-cdr ps)))))
+  (iter primes))
+
+(define primes
+  (cons-stream
+   2 (stream-filter 
+      prime? (integers-starting-from 3))))
+#+END_SRC
+
+Compare these imeplementations with earlier implementations; previous primes implementation was resulting in a huge
+stack and high space complexity because of generating procedure, this implementations using implicit streams uses primes
+generated so far for finding next prime and doesn't involve huge stack.
+
+Note that in order to use implicit streams we are defining ones, integers, fibs, primes as constants not procedures.
+
+
+*** Exploiting the Stream Paradigm
+
+Now that we have defined streams let us look back at the problem that inspired our exploration of streams. The problem
+started with the introduction of assignment for modeling state. Streams with delayed evaluation can be a powerful
+modeling tool, providing many of the benefits of local state and assignment. Moreover, they avoid some of the
+theoretical tangles that accompany the introduction of assignment into a programming language.
+
+The stream approach can be illuminating because it allows us to build systems with different module boundaries than
+systems organized around assignment to state variables. For example, we can think of an entire time series (or signal)
+as a focus of interest, rather than the values of the state variables at individual moments. This makes it convenient to
+combine and compare components of state from different moments.
+
+**** Formulating iterations as stream processes
+
+Consider the example of taking square root or calculating pi. Iterative processes described in [[*Procedures and the Processes They Generate][section 1.2]] proceed by
+updating state variables. We know now that we can represent state as a “timeless” stream of values rather than as a set 
+of variables to be updated. To find square-root of a number we generate a sequence of better and better guesses for the
+square root of x by applying over and over again the procedure that improves guesses.
+
+In the implementation without streams, we make the guesses be the successive values of a state variable. Instead we can
+generate the infinite stream of guesses, starting with an initial guess of 1. We can generate more and more terms of the
+stream to get better and better guesses. If we like, we can write a procedure that keeps generating terms until the
+answer is good enough.
+
+#+BEGIN_SRC scheme
+(define (sqrt-improve guess x)
+  (average guess (/ x guess)))
+
+(define (sqrt-stream x)
+  (define guesses
+    (cons-stream 
+     1.0 (stream-map
+          (lambda (guess)
+            (sqrt-improve guess x))
+          guesses)))
+  guesses)
+
+(display-stream (sqrt-stream 2))
+#+END_SRC
+
+Similary, we can calculate value of pi using streams (refer [[https://sarabander.github.io/sicp/html/3_002e5.xhtml#g_t3_002e5][book]] for details). Streams provide an opportunity to do
+interesting tricks. We can accelerate the approximations and we can accelerate the accelerated sequence. Note how
+tableau is implemented and used. We model and implement using entire sequence is available.
+
+We could have implemented these acceleration techniques without using streams. But the stream formulation is
+particularly elegant and convenient because the *entire sequence of states is available to us as a data structure* that
+can be manipulated with a uniform set of operations. You can think and model differently when you can treat entire
+sequence to be available for processing as a stream but none of its elements are generated until they are required. It
+exists but it isn't materialized. This is the first application of stream paradigm.
+
+
+**** Infinite streams of pairs
+
+The second application of stream paradigm is for generating a stream of pairs. We saw how the sequence paradigm handles
+traditional nested loops as processes defined on sequences of pairs. If we generalize this technique to infinite
+streams, then we can *write programs that are not easily represented as loops*, because the “looping” must range over an
+infinite set (refer [[https://sarabander.github.io/sicp/html/3_002e5.xhtml#g_t3_002e5][book]] for examples and details).
+
+
+**** Streams as signals
+
+This is the third application of stream paradigm. Streams are computational analogs of the “signals” in
+signal-processing systems. We can use streams to model signal-processing systems in a very direct way, representing the
+values of a signal at successive time intervals as consecutive elements of a stream. e.g. we can implement an integrator
+or summer that, for an input stream x=(x_i), an initial value C, and a small increment dt, accumulates the sum and
+returns the stream of values S=(S_i).
+
+#+BEGIN_SRC scheme
+(define (integral integrand initial-value dt)
+  (define int
+    (cons-stream 
+     initial-value
+     (add-streams (scale-stream integrand dt)
+                  int)))
+  int)
+#+END_SRC
+
+
+*** Streams and Delayed Evaluation
+ 
+The integral procedure in the last [[*Streams as signals][section]] shows how we can use streams to model signal-processing systems that contain
+feedback loops. The feedback loop is modeled by the fact that integral’s internal stream int is defined in terms of
+itself.
+
+The interpreter’s ability to deal with such an implicit definition depends on the delay that is incorporated into
+cons-stream. Without this delay, the interpreter could not construct int before evaluating both arguments to
+cons-stream, which would require that int already be defined. In general, delay is crucial for using streams to model
+signal-processing systems that contain loops. Unfortunately, stream models of systems with loops may require uses of
+delay beyond the “hidden” delay supplied by cons-stream. For example,
+
+#+BEGIN_SRC scheme
+(define (solve f y0 dt)
+  (define y (integral dy y0 dt))
+  (define dy (stream-map f y))
+  y)
+#+END_SRC
+
+This procedure does not work, because in the first line of solve the call to integral requires that the input dy be
+defined, which does not happen until the second line of solve. Observe that, for integral, the first element of the
+output stream is the specified initial-value. Thus, we can generate the first element of the output stream without
+evaluating the integrand dy. We will redefine integral to expect the integrand stream to be a delayed argument. Integral
+will force the integrand to be evaluated only when it is required to generate more than the first element of the output
+stream. Now we can implement our solve procedure by delaying the evaluation of dy in the definition of y
+
+#+BEGIN_SRC scheme
+(define (integral
+         delayed-integrand initial-value dt)
+  (define int
+    (cons-stream 
+     initial-value
+     (let ((integrand 
+            (force delayed-integrand)))
+       (add-streams 
+        (scale-stream integrand dt)
+        int))))
+  int)
+
+(define (solve f y0 dt)
+  (define y (integral (delay dy) y0 dt))
+  (define dy (stream-map f y))
+  y)
+#+END_SRC
+
+However, every caller of integral must now delay the integrand argument.
+
+**** Normal-order evaluation
+
+We have seen all the advantages of streams, now we come to the issues and problems such a paradigm might create. The
+examples in this section illustrate how the explicit use of delay and force provides great programming flexibility, but
+the same examples also show how this can make our programs more complex. Our new integral procedure, for instance, gives
+us the power to model systems with loops, but we must now remember that integral should be called with a delayed
+integrand, and every procedure that uses integral must be aware of this. In effect, we have created two classes of
+procedures: ordinary procedures and procedures that take delayed arguments. In general, creating separate classes of
+procedures forces us to create separate classes of higher-order procedures as well.
+
+One way to avoid the need for two different classes of procedures is to make all procedures take delayed arguments. We
+could adopt a model of evaluation in which all arguments to procedures are automatically delayed and arguments are
+forced only when they are actually needed (for example, when they are required by a primitive operation). This would
+transform our language to use normal-order evaluation, which we first described when we introduced the substitution
+model for evaluation in 1.1.5. Converting to normal-order evaluation provides a uniform and elegant way to simplify the
+use of delayed evaluation, and this would be a natural strategy to adopt if we were concerned only with stream
+processing. In 4.2, after we have studied the evaluator, we will see how to transform our language in just this
+way. Unfortunately, including delays in procedure calls wreaks havoc with our ability to design programs that depend on
+the order of events, such as programs that use assignment, mutate data, or perform input or output. Mutability and
+delayed evaluation do not mix well in programming languages, and devising ways to deal with both of these at once is an
+active area of research.
+
+
 *** Notes
 
 It is important to remember that Streams is a *data structure*. This data structure enables modeling of systems in a
@@ -1828,6 +2058,22 @@ systems using streams isn't awkward. Here are few important properties of stream
 2. Streams use memoization for efficiency.
 3. Streams lets you model *infinite* data.
 4. Streams erase the distinction between code and data further.
+
+Streams in general are possible because we access elements using car and cdr which are procedures and we have used this
+as a building block for modeling lists and objects. Having car and cdr as procedures helps because then we have the
+flexibility to handle things in different ways inside the procedure implementation, in the case of Streams we decided to
+delay the execution for cdr which opened new doors for modeling systems. Streams are not possible if we go by index in
+array or pointers to memory location, it has to be a procedure evaluated at runtime.
+
+Systems using Streams for modelling just delay the execution until it is required. This is some implications:
+
+1. Execution will have to happen eventually so when it does, it might delay the response/result.
+2. If the delay is severe, it will affect the performance if you are modelling a "on-line" system.
+3. Results can be prepopulated but you need to define the limit of prepopulated results.
+4. Delaying execution means you have to maintain the state/stack of delayed execution which grows with size of stream in
+   some casees. This becomes severe as you increase the number of streams within a stream. To evaluate, compare the
+   space complexity on (memoization + stack) vs that of normal list. *Implicit Streams* offer a way around this problem.
+
 
 * Miscellaneous
 
