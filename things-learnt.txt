@@ -1,0 +1,36 @@
+
+Problem solving 
+-elements of programming/thinking
+-connection/differencee between procedure and a process
+-recursive procedure can create eiether recursive, iterative or tree-recursive process
+-post-order procedure usually leads to recursive and pre-order leads to iterative processes
+-wishful thinking
+-try to find recursive solution for the problem i.e. reduce the problem to its simplest form and then repeat/recurse subproblems.	
+-binomial theorem 
+	- one set without, one set with.. 
+	- divide problem into two parts by looking at how the result is going to look like
+	- dividing into two parts makes the solution manageable because managing binary tree is much easy than managing n-ary tree
+-avoid repetetive work, or don't do it
+-solve small problems, build abstractions around them, and build up
+-there is no difference between code and data
+-use data abstraction and create abstraction barriers because they let you operate at different levels of abstraction..
+-data structures/data abstractions are important and affect the procedure code because code is designed to manipulate data..
+-use closure property - ability to define data structure/abstraction in terms of itself..
+-use signal processing/conventional interfaces and design conventional interfaces if necessary..
+-post-order and pre-order also show up in data processing.. Use post-order when you want to perform operations after processing successors; use pre-order when you want to perform operation after processing predecessors..
+-distinguish between the cases where you need generic operations(on related types) or generic types(with their own operations) while designing a system and its behaviour. i.e. horizontal or vertical abstraction.
+-find common patterns of work and give them good names.. they become your frameworks..
+-try to solve the entire design problem with interfaces without worrying about any implementations using wishful thinking
+-
+
+Programming/Writing Code
+-do you need a name or store for your value/datum? i.e. do you immutablee or mutable data.
+-both immutable and mutable data have pros and cons
+-mutability introduces the notion of time in your system design therefore concurrency is difficult,  concurrency is easy with immutable data.
+-
+
+System design
+-domain data vs flowing data
+-separate compute and storgae to different nodes
+-end-to-end argument in system design
+	-e.g. file transfer, tcp vs udp, voice call vs voicemail, risc vs cisc.
