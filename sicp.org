@@ -609,7 +609,7 @@ modularity helps the programmer understand and write better.
   abstractions. See Exercise [[./chapter-2/33-accumulate/33-accumulate.scm][2.36]], [[./chapter-2/37-matrices/37-matrices.scm][2.37]].
 - Use post-order/recursion when you want to apply/perform operations on the current item after the result of application
   of operation on the rest of the items/successors is ready. Use pre-order/iteration when you want to apply/perform
-  operations on the current item after result from application of operation on previous items/predecessors is
+  operations on the current item before result from application of operation on previous items/predecessors is
   available. See Exercise [[./chapter-2/38-fold-right-left/38-fold-right-left.scm][2.38]].
 - Don't try to remember how a procedure works instead try to remember the properties it provides, the argument it
   accepts and its return type. Thus, clear documentation and naming are critical when defining abstractions.
@@ -765,6 +765,8 @@ permutations of sets with fewer elements than S.
 - Note: When a procedure returns another procedure it is in effect delaying the execution until the returned procedure
   is applied or until other arguments for returned procedure are available. It is also creating a generic procedure for
   which some arguments are available and other arguments will become available when that procedure is applied.
+- Note: *Accept procedures* as arguments to implement something generic. *Return procedures* to allow procedure
+  manipulation as objects and delayed execution.
 - Because of the separation of the implementation of the painter from the frame it draws the image in, we can write
   transformers and combiners that need not know how painter works/draws, all they have to know is how to transform or
   combine the frames so that they can pass it to the painer. Similarly, higher-order procedures that operate on
@@ -1248,6 +1250,14 @@ modularity in the design of large systems is very difficult, and is an area of m
   abstraction makes it easier for the users to understand and use your system. Good implementation/execution provides
   the necessary reliability so that user can have confidence in your system.
 
+
+** Applications/Implementations in Chapter
+- Tree processing
+- Signal processing
+- Permutations
+- Picture language transforms
+- Implementing multiple representation or inheritance
+- Implementing number system hierarchy
 
 * Chapter 3: Modularity, Objects and State
 
@@ -2130,6 +2140,7 @@ tracking variables.
 
 Entire section is important. It compares two different modeling strategies and their pros and cons. Read from [[https://sarabander.github.io/sicp/html/3_002e5.xhtml#g_t3_002e5][book]].
 
+
 *** Notes
 
 It is important to remember that Streams is a *data structure*. This data structure enables modeling of systems in a
@@ -2150,7 +2161,7 @@ flexibility to handle things in different ways inside the procedure implementati
 delay the execution for cdr which opened new doors for modeling systems. Streams are not possible if we go by index in
 array or pointers to memory location, it has to be a procedure evaluated at runtime.
 
-Systems using Streams for modelling just delay the execution until it is required. This is some implications:
+Systems using Streams for modelling just delay the execution until it is required. This has some implications:
 
 1. Execution will have to happen eventually so when it does, it might delay the response/result.
 2. If the delay is severe, it will affect the performance if you are modelling a "on-line" system.
@@ -2167,8 +2178,12 @@ Systems using Streams for modelling just delay the execution until it is require
 ** Applications/Implementations in Chapter
 - Memoization
 - Queue
-- Event driven simulation
+- Event driven simulation for digital circuits
 - Constraint system
+- Processing unbounded data/infinite streams
+- Singal processing
+- Feedback loops
+- Derivative and integration
 
 
 * Miscellaneous
